@@ -11,10 +11,12 @@
 #include <QString>
 #include <QDebug>
 #include <QtWidgets>
+#include <complex>
 #include <qregularexpression.h>
 #include "message.h"
 #include "bluetoothclient.h"
 #include "hackrfmanager.h"
+#include "plotter.h"
 #include "udpserver.h"
 
 #if defined (Q_OS_ANDROID)
@@ -48,8 +50,9 @@ private slots:
     void on_m_pBSpeak_clicked();
     void on_m_pBSetFreq_clicked();
     void setRadioValues();
-    void setIp();    
-    void getBuffer(QByteArray &buffer);
+    void setIp();
+    void getAudioBuffer(QByteArray &buffer);
+    void getDataBuffer(QByteArray &buffer);
 
     QString enumToString(HackRfManager::Demod demod)
     {
@@ -98,6 +101,11 @@ private:
     Message message;
     HackRfManager::FreqMod currentFreqMod;
     HackRfManager::Demod currentDemod;
+
+    float               *d_realFftData;
+    float               *d_iirFftData;
+    float               *d_pwrFftData;
+    float               d_fftAvg;
 
     Ui::MainWindow *ui;
 

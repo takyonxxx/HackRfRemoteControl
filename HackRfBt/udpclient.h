@@ -13,43 +13,35 @@ class UdpClient : public QObject
 public:
     UdpClient(QObject *parent = nullptr) : QObject(parent)
     {
-        udpSocket = new QUdpSocket(this);
+        udpAudioSocket = new QUdpSocket(this);
+        udpDataSocket = new QUdpSocket(this);
         serverAddress = QHostAddress::LocalHost;
-        serverPort = 5000; // Replace with the server's port
+        serverAudioPort = 5000;
+        serverDataPort = 5001;
     }
 
     void setServerAddress(QString &ipAddress)
     {
         QHostAddress _serverAddress(ipAddress);        
         serverAddress = _serverAddress;
-        qDebug() << "Client ip: " << serverAddress.toString() << "on port" << serverPort;
+        qDebug() << "Client ip: " << serverAddress.toString() << "auido port" << serverAudioPort << "fft port" << serverDataPort;
     }
 
-    void sendData(QByteArray &data)
+    void sendAudioData(QByteArray &data)
     {
-        udpSocket->writeDatagram(data, serverAddress, serverPort);
+        udpAudioSocket->writeDatagram(data, serverAddress, serverAudioPort);
     }
 
-private slots:   
-    void readPendingDatagrams()
+    void sendFftData(QByteArray &data)
     {
-        while (udpSocket->hasPendingDatagrams())
-        {
-            QByteArray datagram;
-            datagram.resize(udpSocket->pendingDatagramSize());
-            QHostAddress senderAddress;
-            quint16 senderPort;
-
-            udpSocket->readDatagram(datagram.data(), datagram.size(), &senderAddress, &senderPort);
-
-            // Handle received data as needed
-            qDebug() << "Received data from server: " << datagram;
-        }
+        udpDataSocket->writeDatagram(data, serverAddress, serverDataPort);
     }
 
 private:
-    QUdpSocket *udpSocket;
+    QUdpSocket *udpAudioSocket;
+    QUdpSocket *udpDataSocket;
     QHostAddress serverAddress;
-    quint16 serverPort;
+    quint16 serverAudioPort;
+    quint16 serverDataPort;
 };
 #endif // UDPCLIENT_H

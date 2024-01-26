@@ -43,7 +43,6 @@ HackRfManager::HackRfManager(QObject *parent) :
     m_Demodulator->setRrate(fftrate);
 
     m_Demodulator->setFilterWidth(2 * m_HiCutFreq, true);
-    m_Demodulator->setGain(0);
 
     QObject::connect(m_Demodulator, &DemodulatorCtrl::spectrumUpdated, this, &HackRfManager::fftTimeout);
     QObject::connect(m_Demodulator, &DemodulatorCtrl::filterChanged, this, &HackRfManager::onFilterChanged);
@@ -89,7 +88,7 @@ void HackRfManager::onBufferProcessed(const sdr::Buffer<int16_t> &buffer)
     {
         if (gattServer) {
             QByteArray soundBuffer(buffer.data(), buffer.bytesLen());
-            udpClient->sendData(soundBuffer);
+            udpClient->sendAudioData(soundBuffer);
         }
     }
 }
@@ -106,6 +105,17 @@ void HackRfManager::onReceiverStopped()
 
 void HackRfManager::fftTimeout()
 {
+    auto fftsize = static_cast<unsigned int>(m_Demodulator->fftSize());
+    if (fftsize > MAX_FFT_SIZE)
+        fftsize = MAX_FFT_SIZE;
+
+    auto d_fftData = m_Demodulator->spectrum();
+    if (fftsize == 0)
+    {
+        return;
+    }
+    QByteArray dataBuffer(d_fftData.data(), d_fftData.bytesLen());    
+    udpClient->sendFftData(dataBuffer);
 }
 
 void HackRfManager::onFilterChanged()

@@ -14,7 +14,7 @@ RTLSource::RTLSource(double frequency, double sample_rate, size_t device_idx)
             << " RTL2832 devices, using No. " << device_idx << ".";
         Logger::get().log(msg);
         qDebug()  << "Found" << rtlsdr_get_device_count()
-                 << "RTL2832 devices, using No :" << device_idx;
+                 << "RTL2832 devices, using No :" << device_idx << "SampleRate :" << _sample_rate;
     }
 
     // Open device
@@ -75,6 +75,7 @@ RTLSource::setFreqCorrection(double ppm) {
 
 void
 RTLSource::setSampleRate(double sample_rate) {
+    qDebug() << "setSampleRate" << sample_rate;
     uint32_t sr = static_cast<uint32_t>(sample_rate);
     rtlsdr_set_sample_rate(_device, sr);
     rtlsdr_reset_buffer(_device);

@@ -105,7 +105,7 @@ RTLDataSource::sampleRate() const {
 }
 
 void
-RTLDataSource::setSampleRate(double rate) {    
+RTLDataSource::setSampleRate(double rate) {
     bool is_running = sdr::Queue::get().isRunning();
     //if (is_running) { sdr::Queue::get().stop(); }
     if (is_running)
@@ -113,7 +113,7 @@ RTLDataSource::setSampleRate(double rate) {
         _device->stop();
         _device->setSampleRate(rate);
         _config.storeSampleRate(rate);
-        _device->start();
+        _device->start();       
     }   
     //if (is_running) { sdr::Queue::get().start(); }
 }
@@ -366,9 +366,9 @@ RTLCtrlView::RTLCtrlView(RTLDataSource *source, QWidget *parent)
         }
 
         _agc->setChecked(_source->agcEnabled());
-        if (_source->agcEnabled()) { _gain->setEnabled(false); }       
+        if (_source->agcEnabled()) { _gain->setEnabled(false); }
 
-        double rate = _sampleRates->itemData(0).toDouble();        
+        double rate = _sampleRates->itemData(0).toDouble();
         _source->setSampleRate(rate);
     }
     else if (! _source->isActive())

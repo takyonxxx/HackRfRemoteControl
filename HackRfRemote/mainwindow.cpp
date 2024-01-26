@@ -37,8 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->m_cDemod->addItem(enumToString(static_cast<HackRfManager::Demod>(i)), i);
     }
 
-//    ui->m_cFreqType->setCurrentIndex(2);
-//    ui->m_cDemod->setCurrentIndex(1);
+    d_realFftData = new float[MAX_FFT_SIZE];
+    d_pwrFftData = new float[MAX_FFT_SIZE]();
+    d_iirFftData = new float[MAX_FFT_SIZE];
+    for (int i = 0; i < MAX_FFT_SIZE; i++)
+        d_iirFftData[i] = RESET_FFT_FACTOR;  // dBFS
 
     m_bleConnection = new BluetoothClient();
 
@@ -58,6 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    if(d_realFftData)delete d_realFftData;
+    if(d_iirFftData)delete d_iirFftData;
+    if(d_pwrFftData)delete d_pwrFftData;
+
     delete hackRfManager;
     delete udpServer;
     delete ui;
@@ -87,8 +94,10 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
         ui->m_pBConnect->setText("Disconnect");
         m_connected = true;
         udpServer = new UdpServer(this);
-        connect(udpServer, &UdpServer::sendInfo, this, &MainWindow::getInfo);
-        connect(udpServer, &UdpServer::sendBuffer, this, &MainWindow::getBuffer);
+        connect(udpServer, &UdpServer::sendAudioBuffer, this, &MainWindow::getAudioBuffer);
+        connect(udpServer, &UdpServer::sendDataBuffer, this, &MainWindow::getDataBuffer);
+        connect(udpServer, &UdpServer::sendInfo, this, &MainWindow::getDataReceived);
+        connect(udpServer, &UdpServer::sendBaud, this, &MainWindow::getBaud);
         break;
     }
     case BluetoothClient::DisConnected:
@@ -167,7 +176,7 @@ void MainWindow::DataHandler(QByteArray data)
 
                         if (conversionOK) {
                             qint64 frequency = static_cast<qint64>(frequencyDouble);
-                            ui->freqCtrl->SetFrequency(static_cast<int>(frequency));
+                            ui->freqCtrl->SetFrequency(static_cast<int>(frequency));                            
                             auto frequency_dbl = 0.0;
                             QString freqType;
                             if (frequency >= 1e9) {                                
@@ -180,7 +189,7 @@ void MainWindow::DataHandler(QByteArray data)
                                 frequency_dbl = frequency;
                             }
 
-                            ui->m_lEditFreq->setText(QString::number(frequency_dbl, 'f', 1));
+                            ui->m_lEditFreq->setText(QString::number(frequency_dbl, 'f', 2));
 
                         } else {
                             qDebug() << "Conversion failed for value:" << valueStr;
@@ -365,22 +374,63 @@ void MainWindow::setIp()
     sendString(mData, data);
 }
 
-void MainWindow::getBuffer(QByteArray &buffer)
+void MainWindow::getAudioBuffer(QByteArray &buffer)
 {
    if(m_connected)
         hackRfManager->setBuffer(buffer);
 }
 
+void MainWindow::getDataBuffer(QByteArray &buffer)
+{
+   unsigned int fftsize;
+   unsigned int i;
+   float pwr;
+   float pwr_scale;
+   double fullScalePower = 1.0;
+   std::complex<float> pt;
+
+   // 75 is default
+   d_fftAvg = static_cast<float>(1.0 - 1.0e-2 * 90);
+
+   fftsize = static_cast<unsigned int>(1024);
+   if (fftsize > MAX_FFT_SIZE)
+        fftsize = MAX_FFT_SIZE;
+
+   auto d_fftData = buffer.data();
+
+   pwr_scale = static_cast<float>(1.0 / fftsize);
+
+   for (i = 0; i < fftsize; i++)
+   {
+        if (i < fftsize / 2)
+        {
+            pt = d_fftData[fftsize / 2 + i];
+        }
+        else
+        {
+            pt = d_fftData[i - fftsize / 2];
+        }
+
+        /* calculate power in dBFS */
+        pwr = pwr_scale * (pt.imag() * pt.imag() + pt.real() * pt.real());
+
+        /* calculate signal level in dBFS */
+        double fft_signal = 20 * std::log10(pwr / fftsize / fullScalePower);
+        auto level = 10 * std::log10(pwr + 1.0e-20f / fullScalePower);
+        d_realFftData[i] = fft_signal;
+        d_iirFftData[i] += d_fftAvg * (d_realFftData[i] - d_iirFftData[i]);
+   }
+}
+
 void MainWindow::on_m_pReset_clicked()
 {
+    udpServer->reset();
     ui->m_textStatus->clear();
     ui->m_lEditFreq->setText("100.0");
     ui->m_cFreqType->setCurrentIndex(2);
     ui->m_cDemod->setCurrentIndex(1);
     setRadioValues();
 }
-
-
 
 void MainWindow::on_m_pIncFreq_clicked()
 {
