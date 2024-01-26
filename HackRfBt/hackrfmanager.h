@@ -9,6 +9,7 @@
 #include "audiootputthread.h"
 #include "receiver/receiver.hh"
 #include "udpclient.h"
+#include "tcpclient.h"
 
 class HackRfManager : public QObject
 {
@@ -56,6 +57,7 @@ private:
     FreqMod currentFreqMod;
     AudioOutputThread *audioOutputThread{};
     UdpClient *udpClient{};
+    TcpClient *tcpClient{};
 
     GattServer *gattServer{};
     QQueue<QByteArray> bufferQueue;

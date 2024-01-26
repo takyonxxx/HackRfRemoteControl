@@ -16,8 +16,8 @@
 #include "message.h"
 #include "bluetoothclient.h"
 #include "hackrfmanager.h"
-#include "plotter.h"
 #include "udpserver.h"
+#include "tcpserver.h"
 
 #if defined (Q_OS_ANDROID)
 const QVector<QString> permissions({"android.permission.BLUETOOTH",
@@ -51,38 +51,10 @@ private slots:
     void on_m_pBSetFreq_clicked();
     void setRadioValues();
     void setIp();
-    void getAudioBuffer(QByteArray &buffer);
-    void getDataBuffer(QByteArray &buffer);
-
-    QString enumToString(HackRfManager::Demod demod)
-    {
-        switch (demod)
-        {
-        case HackRfManager::DEMOD_AM:
-            return "AM";
-        case HackRfManager::DEMOD_WFM:
-            return "WFM";
-        case HackRfManager::DEMOD_NFM:
-            return "NFM";
-        case HackRfManager::DEMOD_USB:
-            return "USB";
-        case HackRfManager::DEMOD_LSB:
-            return "LSB";
-        case HackRfManager::DEMOD_CW:
-            return "CW";
-        case HackRfManager::DEMOD_BPSK31:
-            return "BPSK31";
-        default:
-            return "Unknown";
-        }
-    }
-
+    void getBuffer(QByteArray &buffer);
     void on_m_pReset_clicked();
-
     void on_m_pIncFreq_clicked();
-
     void on_m_pDecFreq_clicked();
-
     void on_m_cFreqType_currentIndexChanged(int index);
 
 signals:
@@ -97,6 +69,7 @@ private:
     BluetoothClient *m_bleConnection{};
     HackRfManager *hackRfManager{};
     UdpServer *udpServer{};
+    TcpServer *tcpServer{};
     bool m_connected{};
     Message message;
     HackRfManager::FreqMod currentFreqMod;

@@ -13,10 +13,10 @@ const int channelCount = 1;
 
 #define MHZ(x)                          ((x)*1000*1000)
 #define KHZ(x)                          ((x)*1*1000)
-#define DEFAULT_SAMPLE_RATE             MHZ(1.0)
+#define DEFAULT_SAMPLE_RATE             MHZ(2.5)
 #define DEFAULT_FREQUENCY               MHZ(100)
 #define DEFAULT_FREQUENCY_CORRECTION	60 //ppm
-#define DEFAULT_FFT_SIZE                1024
+#define DEFAULT_FFT_SIZE                8192 * 4
 #define DEFAULT_FFT_RATE                25 //Hz
 #define DEFAULT_FREQ_STEP               5 //kHz
 #define DEFAULT_AUDIO_GAIN              50
@@ -24,7 +24,7 @@ const int channelCount = 1;
 #define MAX_FFT_SIZE                    DEFAULT_FFT_SIZE
 #define RESET_FFT_FACTOR                -72
 
-class HackRfManager : public QObject
+class HackRfManager : public QThread
 {
     Q_OBJECT
 public:
@@ -54,7 +54,10 @@ public:
         GHZ
     } FreqMod;
 
+    void setStop(bool newStop);
+
 private:
+    QQueue<QByteArray> m_bufferQueue;
     AudioOutputThread *audioOutputThread{};
     bool m_stop;
     bool m_ptt;
@@ -62,6 +65,8 @@ private:
 
 signals:
     void sendInfo(QString);
+protected:
+    void run() override;
 };
 
 #endif // HACKRFMANAGER_H

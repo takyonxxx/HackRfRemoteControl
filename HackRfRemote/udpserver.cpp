@@ -3,38 +3,23 @@
 UdpServer::UdpServer(QObject *parent):
     QObject(parent)
 {
-    udpSocketAudio = new QUdpSocket(this);
-    serverPortAudio = 5000;
-
-    udpSocketData = new QUdpSocket(this);
-    serverPortData = 5001;
+    udpSocket = new QUdpSocket(this);
+    serverPort = 5000;
 
     auto ipAddress = getServerIpAddress();
     QHostAddress _serverAddress(ipAddress);
     serverAddress = _serverAddress;
 
     // Bind the audio socket to a specific port and address
-    if (udpSocketAudio->bind(serverAddress, serverPortAudio))
+    if (udpSocket->bind(serverAddress, serverPort))
     {
-        qDebug() << "Server audio bound successfully to" << serverAddress.toString() << "on port" << serverPortAudio;
-        connect(udpSocketAudio, &QUdpSocket::readyRead, this, &UdpServer::readPendingAudioDatagrams);
+        qDebug() << "Server audio bound successfully to" << serverAddress.toString() << "on port" << serverPort;
+        connect(udpSocket, &QUdpSocket::readyRead, this, &UdpServer::readPendingDatagrams);
     }
     else
     {
-        qDebug() << "Failed to bind audio server to" << serverAddress.toString() << "on port" << serverPortAudio;
-        qDebug() << "Error details:" << udpSocketAudio->errorString();
-    }
-
-    // Bind the data socket to a specific port and address
-    if (udpSocketData->bind(serverAddress, serverPortData))
-    {
-        qDebug() << "Server data bound successfully to" << serverAddress.toString() << "on port" << serverPortData;
-        connect(udpSocketData, &QUdpSocket::readyRead, this, &UdpServer::readPendingDataDatagrams);
-    }
-    else
-    {
-        qDebug() << "Failed to bind data server to" << serverAddress.toString() << "on port" << serverPortData;
-        qDebug() << "Error details:" << udpSocketData->errorString();
+        qDebug() << "Failed to bind audio server to" << serverAddress.toString() << "on port" << serverPort;
+        qDebug() << "Error details:" << udpSocket->errorString();
     }
 }
 
@@ -63,14 +48,14 @@ QString UdpServer::getServerIpAddress()
     return QString("127.0.0.1");
 }
 
-void UdpServer::readPendingAudioDatagrams()
+void UdpServer::readPendingDatagrams()
 {
-    while (udpSocketAudio->hasPendingDatagrams())
+    while (udpSocket->hasPendingDatagrams())
     {
         QByteArray datagram;
-        datagram.resize(udpSocketAudio->pendingDatagramSize());
-        udpSocketAudio->readDatagram(datagram.data(), datagram.size());
-        emit sendAudioBuffer(datagram);
+        datagram.resize(udpSocket->pendingDatagramSize());
+        udpSocket->readDatagram(datagram.data(), datagram.size());
+        emit sendBuffer(datagram);
 
         qint64 dataSize = datagram.size();
         totalReceivedDataSize += dataSize;
@@ -81,21 +66,10 @@ void UdpServer::readPendingAudioDatagrams()
     }
 }
 
-void UdpServer::readPendingDataDatagrams()
+void UdpServer::sendData(QByteArray &data)
 {
-    while (udpSocketData->hasPendingDatagrams())
-    {
-        QByteArray datagram;
-        datagram.resize(udpSocketData->pendingDatagramSize());
-        udpSocketData->readDatagram(datagram.data(), datagram.size());
-        emit sendDataBuffer(datagram);
-    }
+    udpSocket->writeDatagram(data, serverAddress, serverPort);
 }
-
-//void UdpServer::sendData(QByteArray &data)
-//{
-//    udpSocketAudio->writeDatagram(data, serverAddress, serverPortAudio);
-//}
 
 void UdpServer::calculateAndEmitAverageBaud(qint64 dataSize, qint64 currentTime)
 {

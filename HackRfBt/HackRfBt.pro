@@ -97,6 +97,7 @@ HEADERS += \
     sdr/traits.hh \
     sdr/utils.hh \
     sdr/wavfile.hh \
+    tcpclient.h \
     udpclient.h
 
 

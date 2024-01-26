@@ -3,7 +3,6 @@
 #include <QCoreApplication>
 #include <QUdpSocket>
 #include <QNetworkInterface>
-#include <QTimer>
 #include <QDebug>
 
 class UdpClient : public QObject
@@ -13,35 +12,26 @@ class UdpClient : public QObject
 public:
     UdpClient(QObject *parent = nullptr) : QObject(parent)
     {
-        udpAudioSocket = new QUdpSocket(this);
-        udpDataSocket = new QUdpSocket(this);
+        udpSocket = new QUdpSocket(this);
         serverAddress = QHostAddress::LocalHost;
-        serverAudioPort = 5000;
-        serverDataPort = 5001;
+        serverPort = 5000;
     }
 
     void setServerAddress(QString &ipAddress)
     {
         QHostAddress _serverAddress(ipAddress);        
         serverAddress = _serverAddress;
-        qDebug() << "Client ip: " << serverAddress.toString() << "auido port" << serverAudioPort << "fft port" << serverDataPort;
+        qDebug() << "Client ip: " << serverAddress.toString() << "auido port" << serverPort;
     }
 
-    void sendAudioData(QByteArray &data)
+    void sendData(QByteArray &data)
     {
-        udpAudioSocket->writeDatagram(data, serverAddress, serverAudioPort);
-    }
-
-    void sendFftData(QByteArray &data)
-    {
-        udpDataSocket->writeDatagram(data, serverAddress, serverDataPort);
-    }
+        udpSocket->writeDatagram(data, serverAddress, serverPort);
+    }   
 
 private:
-    QUdpSocket *udpAudioSocket;
-    QUdpSocket *udpDataSocket;
+    QUdpSocket *udpSocket;
     QHostAddress serverAddress;
-    quint16 serverAudioPort;
-    quint16 serverDataPort;
+    quint16 serverPort;
 };
 #endif // UDPCLIENT_H

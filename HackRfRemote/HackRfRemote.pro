@@ -15,7 +15,7 @@ SOURCES += main.cpp\
     deviceinfo.cpp \
     message.cpp \
     bluetoothclient.cpp \
-    plotter.cpp \
+    tcpserver.cpp \
     udpserver.cpp
 
 HEADERS  += mainwindow.h \
@@ -25,7 +25,7 @@ HEADERS  += mainwindow.h \
     hackrfmanager.h \
     message.h \
     bluetoothclient.h \
-    plotter.h \
+    tcpserver.h \
     udpserver.h
 
 FORMS    += mainwindow.ui

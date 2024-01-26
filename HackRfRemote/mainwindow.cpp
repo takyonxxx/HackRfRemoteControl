@@ -32,16 +32,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->freqCtrl->SetDigitColor(QColor("#FFC300"));
     ui->freqCtrl->SetFrequency(DEFAULT_FREQUENCY);
 
-    for (int i = HackRfManager::DEMOD_AM; i <= HackRfManager::DEMOD_BPSK31; ++i)
-    {
-        ui->m_cDemod->addItem(enumToString(static_cast<HackRfManager::Demod>(i)), i);
-    }
-
-    d_realFftData = new float[MAX_FFT_SIZE];
-    d_pwrFftData = new float[MAX_FFT_SIZE]();
-    d_iirFftData = new float[MAX_FFT_SIZE];
-    for (int i = 0; i < MAX_FFT_SIZE; i++)
-        d_iirFftData[i] = RESET_FFT_FACTOR;  // dBFS
+//    d_realFftData = new float[MAX_FFT_SIZE];
+//    d_pwrFftData = new float[MAX_FFT_SIZE]();
+//    d_iirFftData = new float[MAX_FFT_SIZE];
+//    for (int i = 0; i < MAX_FFT_SIZE; i++)
+//        d_iirFftData[i] = RESET_FFT_FACTOR;  // dBFS
 
     m_bleConnection = new BluetoothClient();
 
@@ -52,21 +47,28 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_bleConnection, &BluetoothClient::newData, this, &MainWindow::DataHandler);
 
     hackRfManager = new HackRfManager(this);
-    connect(hackRfManager, &HackRfManager::sendInfo, this, &MainWindow::getDataReceived);    
+    connect(hackRfManager, &HackRfManager::sendInfo, this, &MainWindow::getDataReceived);
+    hackRfManager->start();
 
     connect(ui->m_pBConnect, SIGNAL(clicked()),this, SLOT(on_ConnectClicked()));
     connect(ui->m_pBExit, SIGNAL(clicked()),this, SLOT(on_Exit()));
-    getInfo("No Device Connected.");
 }
 
 MainWindow::~MainWindow()
 {
-    if(d_realFftData)delete d_realFftData;
-    if(d_iirFftData)delete d_iirFftData;
-    if(d_pwrFftData)delete d_pwrFftData;
-
-    delete hackRfManager;
+    if (hackRfManager) {
+        hackRfManager->setStop(true);
+        hackRfManager->wait();
+        delete hackRfManager;
+    }
+    if (udpServer) {
     delete udpServer;
+    }
+
+    if (tcpServer) {
+    delete tcpServer;
+    }
+
     delete ui;
 }
 
@@ -93,11 +95,17 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
         ui->m_pBSpeak->setEnabled(true);
         ui->m_pBConnect->setText("Disconnect");
         m_connected = true;
-        udpServer = new UdpServer(this);
-        connect(udpServer, &UdpServer::sendAudioBuffer, this, &MainWindow::getAudioBuffer);
-        connect(udpServer, &UdpServer::sendDataBuffer, this, &MainWindow::getDataBuffer);
-        connect(udpServer, &UdpServer::sendInfo, this, &MainWindow::getDataReceived);
-        connect(udpServer, &UdpServer::sendBaud, this, &MainWindow::getBaud);
+
+        tcpServer = new TcpServer(this);
+        if (!tcpServer->listen(QHostAddress::Any, 5001)) {
+            qDebug() << "Tcp Server could not start. " << tcpServer->errorString();
+        }
+        connect(tcpServer, &TcpServer::sendBuffer, this, &MainWindow::getBuffer);
+        connect(tcpServer, &TcpServer::sendInfo, this, &MainWindow::getDataReceived);
+        connect(tcpServer, &TcpServer::sendBaud, this, &MainWindow::getBaud);
+
+        qDebug() << "Tcp Server listening on port 5001";
+        getInfo("Tcp Server listening on port 5001");
         break;
     }
     case BluetoothClient::DisConnected:
@@ -106,10 +114,10 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
         ui->m_pBConnect->setEnabled(true);
         ui->m_pBConnect->setText("Connect");
         ui->m_pBSpeak->setEnabled(false);
-        if (udpServer) {
-            udpServer->disconnect();  // Disconnect any existing connections
-            udpServer->deleteLater(); // Schedule the object for deletion in the next event loop cycle
-            udpServer = nullptr;      // Set the pointer to null to avoid using it after deletion
+        if (tcpServer) {
+            tcpServer->disconnect();
+            tcpServer->deleteLater();
+            tcpServer = nullptr;
         }
         getInfo("Device disconnected.");
         break;
@@ -250,8 +258,7 @@ void MainWindow::on_ConnectClicked()
         m_bleConnection->startScan();
     }
     else
-    {
-        QThread::msleep(500);
+    {       
         m_bleConnection->disconnectFromDevice();
     }
 }
@@ -368,65 +375,22 @@ void MainWindow::setRadioValues()
 
 void MainWindow::setIp()
 {
-    auto ipAddress = udpServer->getServerIpAddress();
+    auto ipAddress = tcpServer->getServerIpAddress();
     QString combinedText = QString("set_ip,%1").arg(ipAddress);
     QByteArray data = combinedText.toUtf8();
     sendString(mData, data);
 }
 
-void MainWindow::getAudioBuffer(QByteArray &buffer)
+void MainWindow::getBuffer(QByteArray &buffer)
 {
-   if(m_connected)
+   if(hackRfManager && m_connected)
         hackRfManager->setBuffer(buffer);
-}
-
-void MainWindow::getDataBuffer(QByteArray &buffer)
-{
-   unsigned int fftsize;
-   unsigned int i;
-   float pwr;
-   float pwr_scale;
-   double fullScalePower = 1.0;
-   std::complex<float> pt;
-
-   // 75 is default
-   d_fftAvg = static_cast<float>(1.0 - 1.0e-2 * 90);
-
-   fftsize = static_cast<unsigned int>(1024);
-   if (fftsize > MAX_FFT_SIZE)
-        fftsize = MAX_FFT_SIZE;
-
-   auto d_fftData = buffer.data();
-
-   pwr_scale = static_cast<float>(1.0 / fftsize);
-
-   for (i = 0; i < fftsize; i++)
-   {
-        if (i < fftsize / 2)
-        {
-            pt = d_fftData[fftsize / 2 + i];
-        }
-        else
-        {
-            pt = d_fftData[i - fftsize / 2];
-        }
-
-        /* calculate power in dBFS */
-        pwr = pwr_scale * (pt.imag() * pt.imag() + pt.real() * pt.real());
-
-        /* calculate signal level in dBFS */
-        double fft_signal = 20 * std::log10(pwr / fftsize / fullScalePower);
-        auto level = 10 * std::log10(pwr + 1.0e-20f / fullScalePower);
-        d_realFftData[i] = fft_signal;
-        d_iirFftData[i] += d_fftAvg * (d_realFftData[i] - d_iirFftData[i]);
-   }
 }
 
 void MainWindow::on_m_pReset_clicked()
 {
-    udpServer->reset();
-    ui->m_textStatus->clear();
-    ui->m_lEditFreq->setText("100.0");
+    tcpServer->reset();
+    ui->m_textStatus->clear();    
     ui->m_cFreqType->setCurrentIndex(2);
     ui->m_cDemod->setCurrentIndex(1);
     setRadioValues();
@@ -437,12 +401,10 @@ void MainWindow::on_m_pIncFreq_clicked()
     sendCommand(mIncFreq, static_cast<uint8_t>(1));
 }
 
-
 void MainWindow::on_m_pDecFreq_clicked()
 {
     sendCommand(mDecFreq, static_cast<uint8_t>(1));
 }
-
 
 void MainWindow::on_m_cFreqType_currentIndexChanged(int index)
 {

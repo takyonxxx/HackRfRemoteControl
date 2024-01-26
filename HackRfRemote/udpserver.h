@@ -3,7 +3,6 @@
 
 #include <QCoreApplication>
 #include <QUdpSocket>
-#include <QTimer>
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QDateTime>
@@ -19,22 +18,18 @@ public:
     void reset();
 
 private slots:
-    void readPendingAudioDatagrams();
-    void readPendingDataDatagrams();
-//    void sendData(QByteArray &data);
+    void readPendingDatagrams();
+    void sendData(QByteArray &data);
     void calculateAndEmitAverageBaud(qint64 dataSize, qint64 currentTime);
 
 signals:
-    void sendAudioBuffer(QByteArray &buffer);
-    void sendDataBuffer(QByteArray &buffer);
+    void sendBuffer(QByteArray &buffer);
     void sendInfo(QString);
     void sendBaud(QString);
 private:
-    QUdpSocket *udpSocketAudio;
-    QUdpSocket *udpSocketData;
+    QUdpSocket *udpSocket;
     QHostAddress serverAddress;
-    quint16 serverPortAudio;
-    quint16 serverPortData;
+    quint16 serverPort;
     qint64 totalReceivedDataSize = 0;
     qint64 totalBaud = 0;
     qint64 numberOfSamples = 0;

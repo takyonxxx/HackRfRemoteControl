@@ -75,7 +75,6 @@ RTLSource::setFreqCorrection(double ppm) {
 
 void
 RTLSource::setSampleRate(double sample_rate) {
-    qDebug() << "setSampleRate" << sample_rate;
     uint32_t sr = static_cast<uint32_t>(sample_rate);
     rtlsdr_set_sample_rate(_device, sr);
     rtlsdr_reset_buffer(_device);

@@ -41,15 +41,16 @@ HackRfManager::HackRfManager(QObject *parent) :
 
     m_Demodulator->setDemod(currentDemod);
     m_Demodulator->setRrate(fftrate);
+    m_Demodulator->enableAGC(true);
 
     m_Demodulator->setFilterWidth(2 * m_HiCutFreq, true);
 
     QObject::connect(m_Demodulator, &DemodulatorCtrl::spectrumUpdated, this, &HackRfManager::fftTimeout);
     QObject::connect(m_Demodulator, &DemodulatorCtrl::filterChanged, this, &HackRfManager::onFilterChanged);
 
-    audioOutputThread = new AudioOutputThread(this);
-    udpClient = new UdpClient(this);
-
+//    audioOutputThread = new AudioOutputThread(this);
+//    udpClient = new UdpClient(this);
+    tcpClient = new TcpClient(this);
     m_Receiver->start();
 }
 
@@ -66,6 +67,9 @@ HackRfManager::~HackRfManager()
         delete udpClient;
     }
 
+    if (tcpClient) {
+        delete tcpClient;
+    }
 
     if (audioOutputThread) {
         delete audioOutputThread;
@@ -86,9 +90,9 @@ void HackRfManager::onBufferProcessed(const sdr::Buffer<int16_t> &buffer)
 {
     if(!m_ptt)
     {
-        if (gattServer) {
+        if (tcpClient) {
             QByteArray soundBuffer(buffer.data(), buffer.bytesLen());
-            udpClient->sendAudioData(soundBuffer);
+            tcpClient->sendData(soundBuffer);
         }
     }
 }
@@ -105,17 +109,17 @@ void HackRfManager::onReceiverStopped()
 
 void HackRfManager::fftTimeout()
 {
-    auto fftsize = static_cast<unsigned int>(m_Demodulator->fftSize());
-    if (fftsize > MAX_FFT_SIZE)
-        fftsize = MAX_FFT_SIZE;
+//    auto fftsize = static_cast<unsigned int>(m_Demodulator->fftSize());
+//    if (fftsize > MAX_FFT_SIZE)
+//        fftsize = MAX_FFT_SIZE;
 
-    auto d_fftData = m_Demodulator->spectrum();
-    if (fftsize == 0)
-    {
-        return;
-    }
-    QByteArray dataBuffer(d_fftData.data(), d_fftData.bytesLen());    
-    udpClient->sendFftData(dataBuffer);
+//    auto d_fftData = m_Demodulator->spectrum();
+//    if (fftsize == 0)
+//    {
+//        return;
+//    }
+//    QByteArray dataBuffer(d_fftData.data(), d_fftData.bytesLen());
+//    udpClient->sendFftData(dataBuffer);
 }
 
 void HackRfManager::onFilterChanged()
@@ -223,7 +227,7 @@ void HackRfManager::onDataReceived(QByteArray data)
             {
                 DemodulatorCtrl::Demod selectedDemod = static_cast<DemodulatorCtrl::Demod>(value);
                 currentDemod = selectedDemod;
-                m_Demodulator->setDemod(currentDemod);
+                m_Demodulator->setDemod(currentDemod);                
                 sendCommand(mGetDeMod, static_cast<uint8_t>(selectedDemod));
                 qDebug() << "Current demod:" << enumToString(static_cast<HackRfManager::Demod>(currentDemod));
             }
@@ -317,8 +321,8 @@ void HackRfManager::onDataReceived(QByteArray data)
                 }
                 sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
             }
-            else if (command == "set_ip") {
-                udpClient->setServerAddress(valueString);
+            else if (command == "set_ip") {                
+                tcpClient->connectToServer(valueString, 5001);
             }
             break;
         }

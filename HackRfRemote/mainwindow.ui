@@ -161,7 +161,43 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QComboBox" name="m_cDemod"/>
+           <widget class="QComboBox" name="m_cDemod">
+            <item>
+             <property name="text">
+              <string>AM</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>WFM</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>NFM</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>USB</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>LSB</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>CW</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>BPSK31</string>
+             </property>
+            </item>
+           </widget>
           </item>
          </layout>
         </item>
