@@ -6,7 +6,6 @@
 #include <QQueue>
 #include <gattserver.h>
 #include <message.h>
-#include "audiootputthread.h"
 #include "receiver/receiver.hh"
 #include "udpclient.h"
 #include "tcpclient.h"
@@ -55,16 +54,11 @@ private:
 
     DemodulatorCtrl::Demod currentDemod;
     FreqMod currentFreqMod;
-    AudioOutputThread *audioOutputThread{};
     UdpClient *udpClient{};
     TcpClient *tcpClient{};
 
     GattServer *gattServer{};
-    QQueue<QByteArray> bufferQueue;
-
-    QAudioSink *m_audioOutput;
-    QAudioFormat m_format;
-    QBuffer m_audioOutputIODevice;
+    QQueue<QByteArray> bufferQueue;    
     QQueue<QByteArray> audioQueue;
 
     Message message;

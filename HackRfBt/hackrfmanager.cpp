@@ -48,8 +48,6 @@ HackRfManager::HackRfManager(QObject *parent) :
     QObject::connect(m_Demodulator, &DemodulatorCtrl::spectrumUpdated, this, &HackRfManager::fftTimeout);
     QObject::connect(m_Demodulator, &DemodulatorCtrl::filterChanged, this, &HackRfManager::onFilterChanged);
 
-//    audioOutputThread = new AudioOutputThread(this);
-//    udpClient = new UdpClient(this);
     tcpClient = new TcpClient(this);
     m_Receiver->start();
 }
@@ -69,10 +67,6 @@ HackRfManager::~HackRfManager()
 
     if (tcpClient) {
         delete tcpClient;
-    }
-
-    if (audioOutputThread) {
-        delete audioOutputThread;
     }
 
     if (m_Demodulator) {

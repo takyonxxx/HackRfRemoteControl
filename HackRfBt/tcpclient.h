@@ -33,13 +33,12 @@ public slots:
 private slots:
     void onConnected()
     {
-        qDebug() << "Connected to server";
-        // You can send initial data or perform other actions upon connection
+        qDebug() << "Connected to remote server";
     }
 
     void onDisconnected()
     {
-        qDebug() << "Disconnected from server";
+        qDebug() << "Disconnected from remote server";
     }
 
 private:

@@ -77,7 +77,11 @@ public:
     {
         if (_buffer.isUnused())
         {
-            _process(in, _buffer, false);
+            try {
+                _process(in, _buffer, false);
+            } catch (const sdr::RuntimeError& e) {
+                std::cerr << "Caught exception: " << e.what() << std::endl;
+            }
             return _buffer;
         }
     }
@@ -114,7 +118,6 @@ protected:
         if(send)
             this->send(out.head(j), true);
     }
-
 
 protected:
     /** The sub-sampling, n=1 means no sub-sampling at all. */

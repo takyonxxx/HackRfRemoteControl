@@ -2,11 +2,13 @@
 #include "source.hh"
 #include <QDebug>
 using namespace sdr;
+Q_DECLARE_METATYPE(sdr::Buffer<int16_t>);
 
 Receiver::Receiver(QObject *parent)
     : QObject(parent), _queue(Queue::get())
-{   
-     qRegisterMetaType<sdr::RawBuffer>("sdr::RawBuffer");
+{
+    qRegisterMetaType<sdr::Buffer<int16_t>>("sdr::Buffer<int16_t>");
+    qRegisterMetaType<sdr::RawBuffer>("sdr::RawBuffer");
 
     _src   = new DataSourceCtrl(this);
     _demod = new DemodulatorCtrl(this);

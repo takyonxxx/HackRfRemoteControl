@@ -107,11 +107,7 @@ void GattServer::startBleService()
 
     QObject::connect(leController.data(), &QLowEnergyController::connected, this, &GattServer::handleConnected);
     QObject::connect(leController.data(), &QLowEnergyController::disconnected, this, &GattServer::handleDisconnected);
-    QObject::connect(leController.data(), &QLowEnergyController::errorOccurred, this, &GattServer::errorOccurred);
-    // Handle MTU exchange
-    QObject::connect(leController.data(), &QLowEnergyController::mtuChanged, [=](int mtu) {
-        qDebug() << "MTU changed to:" << mtu;
-    });
+//    QObject::connect(leController.data(), &QLowEnergyController::errorOccurred, this, &GattServer::errorOccurred);
 
     QObject::connect(service.data(), &QLowEnergyService::characteristicChanged, this, &GattServer::onCharacteristicChanged);
     QObject::connect(service.data(), &QLowEnergyService::characteristicRead, this, &GattServer::onCharacteristicChanged);
@@ -228,7 +224,7 @@ void GattServer::reConnect()
 
             addService(serviceData);
 
-            const ServicePtr service = services.value(QBluetoothUuid::ServiceClassUuid::ScanParameters);
+            const ServicePtr service = services.value(QBluetoothUuid::ServiceClassUuid::AdvancedAudioDistribution);
             if (service.isNull()) {
                 qDebug() << "Error: Service pointer is nullptr in reConnect.";
                 qDebug() << "Available services:";

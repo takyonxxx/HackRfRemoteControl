@@ -18,7 +18,6 @@ SOURCES += \
         hackrfmanager.cpp \
         main.cpp \
         message.cpp \
-        audiootputthread.cpp \
         receiver/audiopostproc.cc \
         receiver/configuration.cc \
         receiver/demodulator.cc \
@@ -56,7 +55,6 @@ HEADERS += \
     receiver/receiver.hh \
     receiver/rtldatasource.hh \
     receiver/source.hh \
-    audiootputthread.h \
     hackrfmanager.h \
     message.h \
     sdr/aprs.hh \
@@ -114,14 +112,48 @@ macos {
 
 unix:!macx{
     message("linux enabled")
-    #sudo apt install libusb-1.0-0-dev
-    #sudo apt-get install -y fftw3-dev
-    #sudo apt install librtlsdr-dev
-    #sudo apt install libportaudio2
-    #sudo apt install portaudio19-dev
-    #sudo apt install sox
-    #sudo apt-get install libgl-dev
-    #sudo apt-get install qtmultimedia5-dev
+#    sudo apt install libusb-1.0-0-dev
+#    sudo apt-get install -y fftw3-dev
+#    sudo apt install librtlsdr-dev
+#    sudo apt install libportaudio2
+#    sudo apt install portaudio19-dev
+#    sudo apt install sox
+#    sudo apt-get install libgl-dev
+#    sudo apt-get install qtmultimedia5-dev
+#    nmap -sn 192.168.1.0/24
+
+#    start_hackrf.sh
+#    #!/bin/bash
+#    sudo chown root.root /home/pi/HackRfBt/HackRfBt
+#    sudo chmod 4755 /home/pi/HackRfBt/HackRfBt
+#    cd /home/pi/HackRfBt
+#    sudo ./HackRfBt
+
+#    chmod +x start_hackrf.sh
+
+#    sudo nano /etc/systemd/system/hackrf.service
+
+#    [Unit]
+#    Description=HackRF service
+#    After=multi-user.target
+
+#    [Service]
+#    ExecStartPre=/bin/sleep 10
+#    ExecStart=/bin/bash /home/pi/start_hackrf.sh
+#    WorkingDirectory=/home/pi/HackRfBt
+#    StandardOutput=inherit
+#    StandardError=inherit
+#    Restart=always
+#    User=pi
+
+#    [Install]
+#    WantedBy=multi-user.target
+
+#    sudo chmod 644 /lib/systemd/system/hackrf.service
+#    sudo systemctl daemon-reload
+#    sudo systemctl enable hackrf.service
+#    sudo systemctl start hackrf.service
+#    sudo systemctl status hackrf.service
 
     INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include

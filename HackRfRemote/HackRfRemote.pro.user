@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 11.0.3, 2024-01-27T01:53:37. -->
+<!-- Written by QtCreator 11.0.3, 2024-01-28T15:11:57. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -414,7 +414,6 @@
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/Users/turkaybiliyor/Desktop/HackRfRemoteControl/build-HackRfRemote-Qt_6_5_3_for_macOS-Debug/HacRfRemote.app/Contents/MacOS</value>
    </valuemap>
    <value type="qlonglong" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
