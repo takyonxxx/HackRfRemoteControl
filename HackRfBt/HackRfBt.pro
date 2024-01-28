@@ -108,6 +108,25 @@ macos {
     INCLUDEPATH += /opt/homebrew/opt/fftw/include
     INCLUDEPATH += /opt/homebrew/opt/portaudio/include
     LIBS += /opt/homebrew/opt/rtl-sdr/lib/librtlsdr.dylib /opt/homebrew/opt/fftw/lib/libfftw3.dylib /opt/homebrew/opt/portaudio/lib/libportaudio.dylib
+
+#    INCLUDEPATH += /usr/local/lib
+#    INCLUDEPATH += /usr/local/include
+#    INCLUDEPATH += /usr/local/Cellar/boost/1.80.0/include
+#    INCLUDEPATH += /usr/local/Cellar/gnuradio/3.10.4.0/include
+
+#    LIBS += -L/usr/local/lib \
+#    -lboost_system
+#    -lboost_program_options
+#    -lboost_thread
+
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-analog.dylib
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-blocks.dylib
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-digital.dylib
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-filter.dylib
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-fft.dylib
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-runtime.dylib
+#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-audio.dylib
+
 }
 
 unix:!macx{

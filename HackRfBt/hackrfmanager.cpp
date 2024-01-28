@@ -50,6 +50,8 @@ HackRfManager::HackRfManager(QObject *parent) :
 
     tcpClient = new TcpClient(this);
     m_Receiver->start();
+
+    qDebug() << "Freq:" << QString::number(m_Receiver->tunerFrequency() / 1000000.0, 'f', 2) << "Mhz";
 }
 
 HackRfManager::~HackRfManager()

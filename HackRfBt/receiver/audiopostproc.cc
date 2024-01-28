@@ -35,7 +35,7 @@ AudioPostProc::config(const Config &src_cfg) {
 
 void
 AudioPostProc::process(const Buffer<int16_t> &buffer, bool allow_overwrite) {
-//    _sub_sample->process(buffer, allow_overwrite);
+    _sub_sample->process(buffer, allow_overwrite);
     emit bufferProcessed(_sub_sample->getSndBuffer(buffer));
 }
 
