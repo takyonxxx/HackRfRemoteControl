@@ -15,7 +15,7 @@ GattServer::GattServer(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<QLowEnergyController::ControllerState>();
     qRegisterMetaType<QLowEnergyController::Error>();
-    qRegisterMetaType<QLowEnergyConnectionParameters>();   
+    qRegisterMetaType<QLowEnergyConnectionParameters>();
 }
 
 GattServer::~GattServer()
@@ -38,6 +38,12 @@ void GattServer::handleConnected()
     remoteDeviceUuid = leController.data()->remoteDeviceUuid();
     m_ConnectionState = true;
     emit connectionState(m_ConnectionState);
+
+//    // Setup connection parameters here
+//    QLowEnergyConnectionParameters params;
+//    params.setIntervalRange(250, 250);
+//    leController->requestConnectionUpdate(params);
+
     auto statusText = QString("Connected to device %1").arg(remoteDeviceUuid.toString());
     emit sendInfo(statusText);
 }
@@ -67,6 +73,7 @@ void GattServer::errorOccurred(QLowEnergyController::Error newError)
 
 void GattServer::addService(const QLowEnergyServiceData &serviceData)
 {
+    qDebug() << serviceData.uuid();
     const ServicePtr service(leController->addService(serviceData));
     Q_ASSERT(service);
     services.insert(service->serviceUuid(), service);
@@ -74,12 +81,7 @@ void GattServer::addService(const QLowEnergyServiceData &serviceData)
 
 void GattServer::startBleService()
 {
-
     leController.reset(QLowEnergyController::createPeripheral());
-    QLowEnergyConnectionParameters params;
-    params.setIntervalRange(250, 250);
-
-    leController->requestConnectionUpdate(params);
 
     serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
     serviceData.setUuid(QBluetoothUuid::ServiceClassUuid::AdvancedAudioDistribution);

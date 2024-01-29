@@ -3,18 +3,56 @@
 SdrManager::SdrManager(QObject *parent) :
     QObject(parent), m_ptt(false), m_abort(false)
 {
-    // Check device
-    if (rtlsdr_get_device_count() == 0)
-    {
-        qDebug()  << "Can not open RTL2832 USB device";
-        return;
-    }
-
     tunerFrequency  = DEFAULT_FREQUENCY;
     sampleRate      = static_cast<qint64>(DEFAULT_SAMPLE_RATE);
     fftSize         = DEFAULT_FFT_SIZE;
     fftrate         = DEFAULT_FFT_RATE;
     m_HiCutFreq     = DEFAULT_HICUT_FREQ;
+}
+
+SdrManager::~SdrManager()
+{
+    if(m_Receiver)
+    {
+        if(m_Receiver->isRunning())
+            m_Receiver->stop();
+        delete m_Receiver;
+        m_Receiver = nullptr;
+    }
+
+    if (udpClient) {
+        delete udpClient;
+        udpClient = nullptr;
+    }
+
+    if (tcpClient) {
+        delete tcpClient;
+        tcpClient = nullptr;
+    }
+
+    if (m_Demodulator) {
+        delete m_Demodulator;
+        m_Demodulator = nullptr;
+    }
+
+    if (gattServer) {
+        gattServer->disconnect();
+        delete gattServer;
+        gattServer = nullptr;
+    }
+}
+
+void SdrManager::start()
+{
+    currentDemod    = DemodulatorCtrl::DEMOD_WFM;
+    currentFreqMod  = FreqMod::MHZ;
+
+    m_Receiver = new Receiver();
+    if (!m_Receiver) return;
+
+    QObject::connect(m_Receiver, &Receiver::started, this, &SdrManager::onReceiverStarted);
+    QObject::connect(m_Receiver, &Receiver::stopped, this, &SdrManager::onReceiverStopped);
+    QObject::connect(m_Receiver, &Receiver::bufferProcessed, this, &SdrManager::onBufferProcessed);
 
     gattServer = GattServer::getInstance();
     if (gattServer)
@@ -25,16 +63,6 @@ SdrManager::SdrManager(QObject *parent) :
         QObject::connect(gattServer, &GattServer::sendInfo, this, &SdrManager::onInfoReceived);
         gattServer->startBleService();
     }
-
-    currentDemod    = DemodulatorCtrl::DEMOD_WFM;
-    currentFreqMod  = FreqMod::MHZ;
-
-    m_Receiver = new Receiver();
-    if (!m_Receiver) return;
-
-    QObject::connect(m_Receiver, &Receiver::started, this, &SdrManager::onReceiverStarted);
-    QObject::connect(m_Receiver, &Receiver::stopped, this, &SdrManager::onReceiverStopped);
-    QObject::connect(m_Receiver, &Receiver::bufferProcessed, this, &SdrManager::onBufferProcessed);
 
     m_Demodulator = m_Receiver->demod();
     if (!m_Demodulator) return;
@@ -54,36 +82,9 @@ SdrManager::SdrManager(QObject *parent) :
     qDebug() << "Freq:" << QString::number(m_Receiver->tunerFrequency() / 1000000.0, 'f', 2) << "Mhz";
 }
 
-SdrManager::~SdrManager()
-{
-    if(m_Receiver)
-    {
-        if(m_Receiver->isRunning())
-            m_Receiver->stop();
-        delete m_Receiver;
-    }
-
-    if (udpClient) {
-        delete udpClient;
-    }
-
-    if (tcpClient) {
-        delete tcpClient;
-    }
-
-    if (m_Demodulator) {
-        delete m_Demodulator;
-    }
-
-    if (gattServer) {
-        gattServer->disconnect();
-        delete gattServer;
-    }
-}
-
 //audio buffer
 void SdrManager::onBufferProcessed(const sdr::Buffer<int16_t> &buffer)
-{
+{    
     if(!m_ptt)
     {
         if (tcpClient) {

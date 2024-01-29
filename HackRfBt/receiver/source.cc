@@ -91,15 +91,17 @@ DataSourceCtrl::setSource(Src source) {
     bool was_running = _receiver->isRunning();
     if (was_running) { _receiver->stop(); }
 
-    // Unlink current source
-    _src_obj->disconnect(this);
-    // Free current source late
-    _src_obj->deleteLater();
+    if (_src_obj) {
+        _src_obj->disconnect(this);
+        _src_obj->deleteLater();
+    }
 
     // Create and link new data source
     _source = source;
     _src_obj = new RTLDataSource(this);
-    _src_obj->source()->connect(this, true);
+    if (_src_obj) {
+        _src_obj->source()->connect(this, true);
+    }
 
     if (was_running) { _receiver->start(); }
 }

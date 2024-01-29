@@ -9,11 +9,6 @@ HackRfManager::HackRfManager(QObject *parent) :
     centerFrequency = DEFAULT_FREQUENCY;
     m_device_mode    = STANDBY_MODE;
     m_is_initialized = false;
-
-    open();
-
-    set_sample_rate(sampleRate);
-    set_center_freq(centerFrequency);
 }
 
 HackRfManager::~HackRfManager()
@@ -25,6 +20,66 @@ HackRfManager::~HackRfManager()
         status = hackrf_close(this->_device);
         HANDLE_ERROR("Error closing hackrf: %%s\n");
         _device = nullptr;
+    }
+}
+
+void HackRfManager::onDataReceived(QByteArray data)
+{
+    uint8_t parsedCommand;
+    uint8_t rw;
+    QByteArray parsedValue;
+    auto parsed = parseMessage(&data, parsedCommand, parsedValue, rw);
+
+    if(!parsed)return;
+
+    bool ok;
+    int value =  parsedValue.toHex().toInt(&ok, 16);
+}
+
+
+void HackRfManager::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
+{
+    uint8_t buffer[MaxPayload+8] = {'\0'};
+    uint8_t command = msgId;
+
+    int len = message.create_pack(rw , command , payload, buffer);
+
+    for (int i = 0; i < len; i++)
+    {
+        result->append(buffer[i]);
+    }
+}
+
+bool HackRfManager::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
+{
+    MessagePack parsedMessage;
+
+    uint8_t* dataToParse = reinterpret_cast<uint8_t*>(data->data());
+
+    if(message.parse(dataToParse, (uint8_t)data->length(), &parsedMessage))
+    {
+        command = parsedMessage.command;
+        rw = parsedMessage.rw;
+
+        for(int i = 0; i< parsedMessage.len; i++)
+        {
+            value.append(parsedMessage.data[i]);
+        }
+
+        return true;
+    }
+    return false;
+}
+
+void HackRfManager::onConnectionStatedChanged(bool state)
+{
+    if(state)
+    {
+        qDebug() << "Bluetooth connection is succesfull.";
+    }
+    else
+    {
+        qDebug() << "Bluetooth connection lost.";
     }
 }
 
@@ -44,8 +99,8 @@ void HackRfManager::handle_error(int status, const char * format, ...)
     }
 }
 
-void HackRfManager::open() {
-
+void HackRfManager::start()
+{
     int status = -1;
     char* serial_number;
 
@@ -69,8 +124,8 @@ void HackRfManager::open() {
         hackrf_device_list_free(devices);
     }
 
-//    status = hackrf_open(&_device);
-//    HANDLE_ERROR("Failed to open HackRF device: %s\n");
+    //    status = hackrf_open(&_device);
+    //    HANDLE_ERROR("Failed to open HackRF device: %s\n");
 
     status = hackrf_open_by_serial(serial_number, &this->_device);
     HANDLE_ERROR("Failed to open HackRF device: %s\n");
@@ -106,9 +161,22 @@ void HackRfManager::open() {
 
     /* antenna port power control */
     status = hackrf_set_antenna_enable(this->_device, 1);
-    HANDLE_ERROR("Failed to enable antenna DC bias: %%s\n");   
+    HANDLE_ERROR("Failed to enable antenna DC bias: %%s\n");
 
     m_is_initialized = true;
+
+    set_sample_rate(sampleRate);
+    set_center_freq(centerFrequency);
+
+    gattServer = GattServer::getInstance();
+    if (gattServer)
+    {
+        qDebug() << "Starting gatt service";
+        QObject::connect(gattServer, &GattServer::connectionState, this, &HackRfManager::onConnectionStatedChanged);
+        QObject::connect(gattServer, &GattServer::dataReceived, this, &HackRfManager::onDataReceived);
+        QObject::connect(gattServer, &GattServer::sendInfo, this, &HackRfManager::onInfoReceived);
+        gattServer->startBleService();
+    }
 }
 
 bool HackRfManager::StartRx()
@@ -257,3 +325,7 @@ int HackRfManager::hackRF_tx_callback(hackrf_transfer* transfer)
     return 0; // TODO: return -1 on error/stop
 }
 
+void HackRfManager::onInfoReceived(QString info)
+{
+    qDebug() << info;
+}

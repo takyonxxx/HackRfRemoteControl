@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
+#include <message.h>
+#include <gattserver.h>
 #include "hackrf.h"
 
 #define STANDBY_MODE 0
@@ -39,6 +41,28 @@ public:
     int m_device_mode;    // mode: 0=standby 1=Rx 2=Tx
     FILE* fd = NULL;
 
+    static bool isHackRfAvailable() {
+        // Initialize HackRF library
+        hackrf_device* device = nullptr;
+        int result = hackrf_init();
+
+        if (result != HACKRF_SUCCESS) {
+            // HackRF library initialization failed
+            return false;
+        }
+
+        // Open HackRF device
+        result = hackrf_open(&device);
+
+        // Close HackRF device and cleanup
+        hackrf_close(device);
+        hackrf_exit();
+
+        // Return true if opening the device was successful
+        return result == HACKRF_SUCCESS;
+    }
+
+    void start();
     void open();
     void handle_error(int status, const char * format, ...);
     static int _hackRF_rx_callback(hackrf_transfer* transfer);
@@ -53,7 +77,17 @@ public:
     virtual bool StartTx();
     bool stop_Tx();
 
+private slots:
+    void onConnectionStatedChanged(bool);
+    void onDataReceived(QByteArray);
+    void onInfoReceived(QString);
+    void createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result);
+    bool parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw);
+
 private:
+    GattServer *gattServer{};
+    Message message;
+
     bool m_is_initialized;
     int sampleRate;
     double centerFrequency;

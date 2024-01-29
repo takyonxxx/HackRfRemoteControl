@@ -18,6 +18,7 @@ public:
     ~SdrManager();
 
     void setAbort(bool newAbort);
+    void start();
 
 public:
     typedef enum {

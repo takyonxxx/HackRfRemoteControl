@@ -56,7 +56,6 @@ signals:
 
 private slots:
 
-    //QLowEnergyService
     void onCharacteristicChanged(const QLowEnergyCharacteristic &c, const QByteArray &value);
     void onInfoReceived(QString);
     void onSensorReceived(QString);
