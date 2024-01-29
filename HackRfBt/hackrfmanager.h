@@ -2,13 +2,32 @@
 #define HACKRFMANAGER_H
 
 #include <QObject>
-#include <QThread>
-#include <QQueue>
-#include <gattserver.h>
-#include <message.h>
-#include "receiver/receiver.hh"
-#include "udpclient.h"
-#include "tcpclient.h"
+#include <QDebug>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <string.h>
+#include "hackrf.h"
+
+#define STANDBY_MODE 0
+#define RX_MODE      1
+#define TX_MODE      2
+
+#define GHZ(x) ((uint64_t)(x) * 1000000000)
+#define MHZ(x) ((x) * 1000000)
+#define KHZ(x) ((x) * 1000)
+#define DEFAULT_SAMPLE_RATE             MHZ(20)
+#define DEFAULT_FREQUENCY               MHZ(100)
+#define DEFAULT_FREQUENCY_CORRECTION	60 //ppm
+#define DEFAULT_FFT_SIZE                8192 * 4
+#define DEFAULT_FFT_RATE                25 //Hz
+#define DEFAULT_FREQ_STEP               5 //kHz
+#define DEFAULT_AUDIO_GAIN              50
+#define DEFAULT_HICUT_FREQ              KHZ(100)
+#define MAX_FFT_SIZE                    DEFAULT_FFT_SIZE
+#define RESET_FFT_FACTOR                -72
+
+using namespace std;
 
 class HackRfManager : public QObject
 {
@@ -17,91 +36,29 @@ public:
     explicit HackRfManager(QObject *parent = nullptr);
     ~HackRfManager();
 
-    void setAbort(bool newAbort);
+    int m_device_mode;    // mode: 0=standby 1=Rx 2=Tx
+    FILE* fd = NULL;
 
-public:
-    typedef enum {
-        DEMOD_AM,
-        DEMOD_WFM,
-        DEMOD_NFM,
-        DEMOD_USB,
-        DEMOD_LSB,
-        DEMOD_CW,
-        DEMOD_BPSK31
-    } Demod;
+    void open();
+    void handle_error(int status, const char * format, ...);
+    static int _hackRF_rx_callback(hackrf_transfer* transfer);
+    int hackRF_rx_callback(hackrf_transfer* transfer);
+    static int _hackRF_tx_callback(hackrf_transfer* transfer);
+    int hackRF_tx_callback(hackrf_transfer* transfer);
+    bool set_sample_rate( double rate );
+    bool set_center_freq( double fc_hz );
 
-public:
-    typedef enum {
-        HZ,
-        KHZ,
-        MHZ,
-        GHZ
-    } FreqMod;
+    virtual bool StartRx();
+    bool stop_Rx();
+    virtual bool StartTx();
+    bool stop_Tx();
 
 private:
-    void createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result);
-    bool parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw);
-
-    void sendCommand(uint8_t command, uint8_t value);
-    void sendString(uint8_t command, const QString&);
-
-    unsigned int sampleRate;
-    qint64       tunerFrequency;
-    int          m_HiCutFreq;
-    int          m_LowCutFreq;
-    unsigned int fftSize;
-    unsigned int fftrate;
-
-    DemodulatorCtrl::Demod currentDemod;
-    FreqMod currentFreqMod;
-    UdpClient *udpClient{};
-    TcpClient *tcpClient{};
-
-    GattServer *gattServer{};
-    QQueue<QByteArray> bufferQueue;    
-    QQueue<QByteArray> audioQueue;
-
-    Message message;
-    bool m_ptt;
-    QMutex mutex;
-    bool m_abort;
-
-private slots:
-    void onConnectionStatedChanged(bool);
-    void onDataReceived(QByteArray);
-    void onInfoReceived(QString);
-    void onReceiverStarted();
-    void onReceiverStopped();
-    void fftTimeout();
-    void onFilterChanged();
-    void onBufferProcessed(const sdr::Buffer<int16_t> &buffer);
-
-    QString enumToString(HackRfManager::Demod demod)
-    {
-        switch (demod)
-        {
-        case HackRfManager::DEMOD_AM:
-            return "AM";
-        case HackRfManager::DEMOD_WFM:
-            return "WFM";
-        case HackRfManager::DEMOD_NFM:
-            return "NFM";
-        case HackRfManager::DEMOD_USB:
-            return "USB";
-        case HackRfManager::DEMOD_LSB:
-            return "LSB";
-        case HackRfManager::DEMOD_CW:
-            return "CW";
-        case HackRfManager::DEMOD_BPSK31:
-            return "BPSK31";
-        default:
-            return "Unknown";
-        }
-    }
-
-protected:    
-    Receiver *m_Receiver{};
-    DemodulatorCtrl *m_Demodulator{};
+    bool m_is_initialized;
+    int sampleRate;
+    double centerFrequency;
+    hackrf_device *_device{};
+    double previous_phase = 0.0;
+    double previous_amplitude = 0.0;
 };
-
 #endif // HACKRFMANAGER_H

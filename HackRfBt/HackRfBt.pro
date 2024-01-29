@@ -42,20 +42,21 @@ SOURCES += \
         sdr/sha1.cc \
         sdr/traits.cc \
         sdr/utils.cc \
-        sdr/wavfile.cc
+        sdr/wavfile.cc \
+        sdrmanager.cpp
 
 HEADERS += \
     gattserver.h \
     gui/gui.hh \
     gui/spectrum.hh \
     gui/spectrumview.hh \
+    hackrfmanager.h \
     receiver/audiopostproc.hh \
     receiver/configuration.hh \
     receiver/demodulator.hh \
     receiver/receiver.hh \
     receiver/rtldatasource.hh \
     receiver/source.hh \
-    hackrfmanager.h \
     message.h \
     sdr/aprs.hh \
     sdr/autocast.hh \
@@ -95,6 +96,7 @@ HEADERS += \
     sdr/traits.hh \
     sdr/utils.hh \
     sdr/wavfile.hh \
+    sdrmanager.h \
     tcpclient.h \
     udpclient.h
 
@@ -108,6 +110,9 @@ macos {
     INCLUDEPATH += /opt/homebrew/opt/fftw/include
     INCLUDEPATH += /opt/homebrew/opt/portaudio/include
     LIBS += /opt/homebrew/opt/rtl-sdr/lib/librtlsdr.dylib /opt/homebrew/opt/fftw/lib/libfftw3.dylib /opt/homebrew/opt/portaudio/lib/libportaudio.dylib
+
+    INCLUDEPATH += /opt/homebrew/opt/hackrf/include/libhackrf
+    LIBS += /opt/homebrew/opt/hackrf/lib/libhackrf.dylib
 
 #    INCLUDEPATH += /usr/local/lib
 #    INCLUDEPATH += /usr/local/include
@@ -179,6 +184,11 @@ unix:!macx{
     INCLUDEPATH += /usr/local/lib
     INCLUDEPATH += /usr/lib/x86_64-linux-gnu
     LIBS += -lrt -lportaudio -lrtlsdr -lfftw3
+
+    LIBS += -L$$PWD/../../../../usr/local/lib/ -lhackrf
+    INCLUDEPATH += $$PWD/../../../../usr/local/include/libhackrf
+    DEPENDPATH += $$PWD/../../../../usr/local/include/libhackrf
+    PRE_TARGETDEPS += $$PWD/../../../../usr/local/lib/libhackrf.a
 }
 
 ios {
