@@ -21,13 +21,24 @@ void TcpServer::onReadyRead()
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket*>(sender());
     if (clientSocket && clientSocket->bytesAvailable() > 0) {
         QByteArray data = clientSocket->readAll();
-        emit sendBuffer(data);
-        qint64 dataSize = data.size();
-        totalReceivedDataSize += dataSize;
-        double totalReceivedDataMB = static_cast<double>(totalReceivedDataSize) / (1024 * 1024);
-        QString totalReceivedDataString = QString::number(totalReceivedDataMB, 'f', 3) + " MB" + " - " + QString::number(dataSize) + " Byte";
-        emit sendInfo(totalReceivedDataString);
-        calculateAndEmitAverageBaud(dataSize, QDateTime::currentMSecsSinceEpoch());
+        // Combine partial data from previous reads, if any
+        data.prepend(partialData);
+        int expectedSize = HackRfManager::getSamplingBytes(currentDemod);
+        while (data.size() >= expectedSize) {
+            // Process a complete message of expected size
+            QByteArray message = data.left(expectedSize);
+            data.remove(0, expectedSize);            
+            emit sendBuffer(message);
+
+            qint64 dataSize = message.size();
+            totalReceivedDataSize += dataSize;
+            double totalReceivedDataMB = static_cast<double>(totalReceivedDataSize) / (1024 * 1024);
+            QString totalReceivedDataString = QString::number(totalReceivedDataMB, 'f', 3) + " MB" + " - " + QString::number(dataSize) + " Byte";
+            emit sendInfo(totalReceivedDataString);
+            calculateAndEmitAverageBaud(dataSize, QDateTime::currentMSecsSinceEpoch());
+        }
+        // Store any remaining partial data for the next read
+        partialData = data;
     }
 }
 
@@ -55,6 +66,11 @@ void TcpServer::calculateAndEmitAverageBaud(qint64 dataSize, qint64 currentTime)
 
     // Update lastUpdateTime for the next calculation
     lastUpdateTime = currentTime;
+}
+
+void TcpServer::setDemod(HackRfManager::Demod newDemod)
+{
+    currentDemod = newDemod;
 }
 
 QString TcpServer::getServerIpAddress()

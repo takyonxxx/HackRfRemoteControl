@@ -39,11 +39,6 @@ void GattServer::handleConnected()
     m_ConnectionState = true;
     emit connectionState(m_ConnectionState);
 
-//    // Setup connection parameters here
-//    QLowEnergyConnectionParameters params;
-//    params.setIntervalRange(250, 250);
-//    leController->requestConnectionUpdate(params);
-
     auto statusText = QString("Connected to device %1").arg(remoteDeviceUuid.toString());
     emit sendInfo(statusText);
 }

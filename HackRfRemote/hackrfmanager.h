@@ -46,6 +46,48 @@ public:
         DEMOD_BPSK31
     } Demod;
 
+    static int getSamplingRate(Demod demod) {
+        switch (demod) {
+        case DEMOD_AM:
+            return 8012;  // Example: 8 kHz for AM
+        case DEMOD_WFM:
+            return 23148; // Example: 22.05 kHz for WFM
+        case DEMOD_NFM:
+            return 12500;  // Example: 12.5 kHz for NFM
+        case DEMOD_USB:
+            return 8012;  // Example: 8 kHz for USB/LSB
+        case DEMOD_LSB:
+            return 8012;  // Example: 8 kHz for USB/LSB
+        case DEMOD_CW:
+            return 8012;  // Example: 8 kHz for CW
+        case DEMOD_BPSK31:
+            return 8012; // Example: 11.025 kHz for BPSK31
+        default:
+            return -1;    // Indicate an error
+        }
+    }
+
+    static int getSamplingBytes(Demod demod) {
+        switch (demod) {
+        case DEMOD_AM:
+            return 842;
+        case DEMOD_WFM:
+            return 2428;
+        case DEMOD_NFM:
+            return 1312;
+        case DEMOD_USB:
+            return 842;
+        case DEMOD_LSB:
+            return 842;
+        case DEMOD_CW:
+            return 842;
+        case DEMOD_BPSK31:
+            return 842;
+        default:
+            return -1;
+        }
+    }
+
 public:
     typedef enum {
         HZ,
@@ -55,10 +97,11 @@ public:
     } FreqMod;
 
     void setStop(bool newStop);
+    void setDemod(Demod newDemod);
 
 private:
     QQueue<QByteArray> m_bufferQueue;
-    AudioOutputThread *audioOutputThread{};
+    AudioOutputThread *audioOutputThread{};   
     bool m_stop;
     bool m_ptt;
     QMutex mutex;

@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <QDateTime>
 #include <QNetworkInterface>
+#include "hackrfmanager.h"
 
 class TcpServer : public QTcpServer
 {
@@ -17,6 +18,8 @@ public:
     QString getServerIpAddress();
      void reset();
 
+    void setDemod(HackRfManager::Demod newDemod);
+
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
@@ -27,9 +30,11 @@ private slots:
 signals:
     void sendBuffer(QByteArray &buffer);
     void sendInfo(QString);
-    void sendBaud(QString);    
+    void sendBaud(QString);   
 
 private:
+    QByteArray partialData;
+    HackRfManager::Demod currentDemod;
     qint64 totalReceivedDataSize = 0;
     qint64 totalBaud = 0;
     qint64 numberOfSamples = 0;

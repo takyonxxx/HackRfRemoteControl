@@ -88,7 +88,7 @@ void SdrManager::onBufferProcessed(const sdr::Buffer<int16_t> &buffer)
     if(!m_ptt)
     {
         if (tcpClient) {
-            QByteArray soundBuffer(buffer.data(), buffer.bytesLen());
+            QByteArray soundBuffer(buffer.data(), buffer.bytesLen());            
             tcpClient->sendData(soundBuffer);
         }
     }

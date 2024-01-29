@@ -3,7 +3,7 @@
 HackRfManager::HackRfManager(QObject *parent) :
     QThread(parent), m_stop(false), m_ptt(false)
 {
-    audioOutputThread = new AudioOutputThread(this);
+
 }
 
 HackRfManager::~HackRfManager()
@@ -21,6 +21,18 @@ void HackRfManager::setPtt(bool newPtt)
 void HackRfManager::setStop(bool newStop)
 {
     m_stop = newStop;
+}
+
+void HackRfManager::setDemod(Demod newDemod)
+{
+    if (audioOutputThread) {
+        delete audioOutputThread;
+    }
+
+    auto samplingRate = getSamplingRate(newDemod);
+    if (samplingRate != -1) {
+        audioOutputThread = new AudioOutputThread(this, samplingRate);
+    }
 }
 
 void HackRfManager::setBuffer(const QByteArray& buffer)

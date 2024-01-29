@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QBuffer>
 
-AudioOutputThread::AudioOutputThread(QObject *parent):
+AudioOutputThread::AudioOutputThread(QObject *parent, int sampleFormat):
     QObject(parent)
 {
     QAudioDevice outputDevice;
@@ -18,7 +18,7 @@ AudioOutputThread::AudioOutputThread(QObject *parent):
     }
 
     m_format.setSampleFormat(QAudioFormat::Int16);
-    m_format.setSampleRate(22050);
+    m_format.setSampleRate(sampleFormat);
     m_format.setChannelCount(1);
 
     m_audioOutput.reset(new QAudioSink(outputDevice, m_format));

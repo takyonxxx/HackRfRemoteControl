@@ -17,7 +17,7 @@ class AudioOutputThread: public QObject
 {
     Q_OBJECT
 public:
-    explicit AudioOutputThread(QObject *parent);
+    explicit AudioOutputThread(QObject *parent, int sampleFormat);
     ~AudioOutputThread();
     void stop();
     void writeBuffer(const QByteArray &buffer);

@@ -32,12 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->freqCtrl->SetDigitColor(QColor("#FFC300"));
     ui->freqCtrl->SetFrequency(DEFAULT_FREQUENCY);
 
-//    d_realFftData = new float[MAX_FFT_SIZE];
-//    d_pwrFftData = new float[MAX_FFT_SIZE]();
-//    d_iirFftData = new float[MAX_FFT_SIZE];
-//    for (int i = 0; i < MAX_FFT_SIZE; i++)
-//        d_iirFftData[i] = RESET_FFT_FACTOR;  // dBFS
-
     m_bleConnection = new BluetoothClient();
 
     connect(m_bleConnection, &BluetoothClient::statusChanged, this, &MainWindow::getInfo);
@@ -46,9 +40,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_bleConnection, &BluetoothClient::sendBaud, this, &MainWindow::getBaud);
     connect(m_bleConnection, &BluetoothClient::newData, this, &MainWindow::DataHandler);
 
+    currentDemod = HackRfManager::DEMOD_WFM;
+
     hackRfManager = new HackRfManager(this);
     connect(hackRfManager, &HackRfManager::sendInfo, this, &MainWindow::getDataReceived);
-    hackRfManager->start();
+    hackRfManager->setDemod(currentDemod);
+    hackRfManager->start();    
 
     connect(ui->m_pBConnect, SIGNAL(clicked()),this, SLOT(on_ConnectClicked()));
     connect(ui->m_pBExit, SIGNAL(clicked()),this, SLOT(on_Exit()));
@@ -103,6 +100,7 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
         connect(tcpServer, &TcpServer::sendBuffer, this, &MainWindow::getBuffer);
         connect(tcpServer, &TcpServer::sendInfo, this, &MainWindow::getDataReceived);
         connect(tcpServer, &TcpServer::sendBaud, this, &MainWindow::getBaud);
+        tcpServer->setDemod(currentDemod);
 
         qDebug() << "Tcp Server listening on port 5001";
         getInfo("Tcp Server listening on port 5001");
@@ -223,6 +221,8 @@ void MainWindow::DataHandler(QByteArray data)
                 HackRfManager::Demod selectedDemod = static_cast<HackRfManager::Demod>(value);
                 ui->m_cDemod->setCurrentIndex(selectedDemod);
                 currentDemod = selectedDemod;
+                hackRfManager->setDemod(currentDemod);
+                tcpServer->setDemod(currentDemod);
             }
             break;
         case mGetFreqMod:
@@ -413,6 +413,15 @@ void MainWindow::on_m_cFreqType_currentIndexChanged(int index)
     {
         HackRfManager::FreqMod freqMod = static_cast<HackRfManager::FreqMod>(selectedIndex);
         sendCommand(mSetFreqMod, static_cast<uint8_t>(freqMod));
+    }
+}
+
+void MainWindow::on_m_cDemod_currentIndexChanged(int index)
+{
+    if (index >= 0 && index < ui->m_cDemod->count())
+    {
+        HackRfManager::Demod demod = static_cast<HackRfManager::Demod>(index);
+        sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
     }
 }
 

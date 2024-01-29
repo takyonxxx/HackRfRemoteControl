@@ -57,6 +57,8 @@ private slots:
     void on_m_pDecFreq_clicked();
     void on_m_cFreqType_currentIndexChanged(int index);
 
+    void on_m_cDemod_currentIndexChanged(int index);
+
 signals:
     void connectToDevice(int i);
 
