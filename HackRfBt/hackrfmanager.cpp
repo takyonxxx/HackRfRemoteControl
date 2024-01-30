@@ -3,7 +3,7 @@
 #define HANDLE_ERROR(format, ...) this->handle_error(status, format, ##__VA_ARGS__)
 
 HackRfManager::HackRfManager(QObject *parent) :
-    QObject(parent), _device(nullptr)
+    QObject(parent), _device(nullptr), modulationIndex(0.0)
 {
     sampleRate = DEFAULT_SAMPLE_RATE;
     centerFrequency = DEFAULT_FREQUENCY;
@@ -161,7 +161,7 @@ void HackRfManager::start()
 
     /* antenna port power control */
     status = hackrf_set_antenna_enable(this->_device, 1);
-    HANDLE_ERROR("Failed to enable antenna DC bias: %%s\n");
+    HANDLE_ERROR("Failed to enable antenna DC bias: %%s\n");    
 
     m_is_initialized = true;
 
@@ -322,6 +322,20 @@ int  HackRfManager::_hackRF_tx_callback(hackrf_transfer *transfer) {
 int HackRfManager::hackRF_tx_callback(hackrf_transfer* transfer)
 {
     qDebug() << "Hackrf tx call back called with: " << transfer->buffer_length << " bytes";
+    // Example: Generate a sine wave for FM modulation
+    double frequency = calculateFrequency(centerFrequency, deviation, modulationIndex);
+    modulationIndex += 0.01; // Increase the modulation index for variation
+
+    // FM modulation: Multiply the buffer by a sinusoidal waveform
+    for (size_t i = 0; i < transfer->buffer_length; ++i) {
+        double modulation = std::sin(2 * M_PI * frequency * i / sampleRate);
+        transfer->buffer[i] = static_cast<int16_t>(transfer->buffer[i] * modulation);
+    }
+
+    // Transmit the sample
+    hackrf_set_freq(this->_device, frequency);
+    // Sleep for a short duration to control the modulation rate
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     return 0; // TODO: return -1 on error/stop
 }
 

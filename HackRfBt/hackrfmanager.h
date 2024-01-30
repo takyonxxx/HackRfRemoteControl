@@ -90,9 +90,17 @@ private:
 
     bool m_is_initialized;
     int sampleRate;
-    double centerFrequency;
+
     hackrf_device *_device{};
     double previous_phase = 0.0;
     double previous_amplitude = 0.0;
+    double centerFrequency;
+    double deviation = 50e3;      // 50 kHz deviation
+    double modulationIndex;
+
+    double calculateFrequency(double baseFrequency, double deviation, double modulationIndex) {
+        return baseFrequency + deviation * std::sin(modulationIndex);
+    }
+
 };
 #endif // HACKRFMANAGER_H
