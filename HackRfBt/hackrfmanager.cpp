@@ -23,66 +23,6 @@ HackRfManager::~HackRfManager()
     }
 }
 
-void HackRfManager::onDataReceived(QByteArray data)
-{
-    uint8_t parsedCommand;
-    uint8_t rw;
-    QByteArray parsedValue;
-    auto parsed = parseMessage(&data, parsedCommand, parsedValue, rw);
-
-    if(!parsed)return;
-
-    bool ok;
-    int value =  parsedValue.toHex().toInt(&ok, 16);
-}
-
-
-void HackRfManager::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
-{
-    uint8_t buffer[MaxPayload+8] = {'\0'};
-    uint8_t command = msgId;
-
-    int len = message.create_pack(rw , command , payload, buffer);
-
-    for (int i = 0; i < len; i++)
-    {
-        result->append(buffer[i]);
-    }
-}
-
-bool HackRfManager::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
-{
-    MessagePack parsedMessage;
-
-    uint8_t* dataToParse = reinterpret_cast<uint8_t*>(data->data());
-
-    if(message.parse(dataToParse, (uint8_t)data->length(), &parsedMessage))
-    {
-        command = parsedMessage.command;
-        rw = parsedMessage.rw;
-
-        for(int i = 0; i< parsedMessage.len; i++)
-        {
-            value.append(parsedMessage.data[i]);
-        }
-
-        return true;
-    }
-    return false;
-}
-
-void HackRfManager::onConnectionStatedChanged(bool state)
-{
-    if(state)
-    {
-        qDebug() << "Bluetooth connection is succesfull.";
-    }
-    else
-    {
-        qDebug() << "Bluetooth connection lost.";
-    }
-}
-
 void HackRfManager::handle_error(int status, const char * format, ...)
 {
     if (status != 0) {
@@ -101,9 +41,7 @@ void HackRfManager::handle_error(int status, const char * format, ...)
 
 void HackRfManager::start()
 {
-    int status = -1;
-    char* serial_number;
-
+    int status = -1;    
     status = hackrf_init();
     HANDLE_ERROR("hackrf_init() failed: %s\n");
 
@@ -118,18 +56,13 @@ void HackRfManager::start()
         for (int i = 0; i < devices->devicecount; i++)
         {
             qDebug() << "HackRf device S/N " << devices->serial_numbers[i] << "found";
-            serial_number = devices->serial_numbers[i];
             break;
         }
         hackrf_device_list_free(devices);
     }
 
-    //    status = hackrf_open(&_device);
-    //    HANDLE_ERROR("Failed to open HackRF device: %s\n");
-
-    status = hackrf_open_by_serial(serial_number, &this->_device);
+    status = hackrf_open(&_device);
     HANDLE_ERROR("Failed to open HackRF device: %s\n");
-
 
     uint8_t board_id;
     status = hackrf_board_id_read( this->_device, &board_id );
@@ -177,6 +110,8 @@ void HackRfManager::start()
         QObject::connect(gattServer, &GattServer::sendInfo, this, &HackRfManager::onInfoReceived);
         gattServer->startBleService();
     }
+
+    StartRx();
 }
 
 bool HackRfManager::StartRx()
@@ -280,7 +215,10 @@ int HackRfManager::_hackRF_rx_callback(hackrf_transfer* transfer)
 
 int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
 {
-    qDebug() << "Hackrf rx call back called with: " << transfer->buffer_length << " bytes" << "len" <<  transfer->valid_length;
+    qDebug() << transfer->buffer_length << " bytes" << transfer->valid_length << "len";
+
+    int buffer_size = transfer->buffer_length / 2;
+    double* demodulated_samples = new double[buffer_size];
 
     for (int i = 0; i < transfer->buffer_length / 2; i += 2)
     {
@@ -294,22 +232,11 @@ int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
         // Calculate frequency deviation (change in phase)
         double delta_phase = phase - previous_phase;
         previous_phase = phase;
+
         // Perform frequency demodulation to get audio signal
         double demodulated_fm_sample = (delta_phase / (2.0 * M_PI * sampleRate)) * 1e6; // Convert to Hz
+        demodulated_samples[i / 2] = demodulated_fm_sample;
     }
-
-//    for (int i = 0; i < transfer->buffer_length / 2; i += 2)
-//    {
-//        // Extract amplitude of the AM signal
-//        double real = transfer->buffer[i];
-//        double imag = transfer->buffer[i + 1];
-
-//        double amplitude = sqrt(real * real + imag * imag);
-
-//        // Perform AM demodulation to get audio signal
-//        double demodulated_am_sample = amplitude - previous_amplitude;
-//        previous_amplitude = amplitude;
-//    }
 
     return 0; // TODO: return -1 on error/stop
 }
@@ -343,3 +270,64 @@ void HackRfManager::onInfoReceived(QString info)
 {
     qDebug() << info;
 }
+
+void HackRfManager::onDataReceived(QByteArray data)
+{
+    uint8_t parsedCommand;
+    uint8_t rw;
+    QByteArray parsedValue;
+    auto parsed = parseMessage(&data, parsedCommand, parsedValue, rw);
+
+    if(!parsed)return;
+
+    bool ok;
+    int value =  parsedValue.toHex().toInt(&ok, 16);
+}
+
+
+void HackRfManager::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
+{
+    uint8_t buffer[MaxPayload+8] = {'\0'};
+    uint8_t command = msgId;
+
+    int len = message.create_pack(rw , command , payload, buffer);
+
+    for (int i = 0; i < len; i++)
+    {
+        result->append(buffer[i]);
+    }
+}
+
+bool HackRfManager::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
+{
+    MessagePack parsedMessage;
+
+    uint8_t* dataToParse = reinterpret_cast<uint8_t*>(data->data());
+
+    if(message.parse(dataToParse, (uint8_t)data->length(), &parsedMessage))
+    {
+        command = parsedMessage.command;
+        rw = parsedMessage.rw;
+
+        for(int i = 0; i< parsedMessage.len; i++)
+        {
+            value.append(parsedMessage.data[i]);
+        }
+
+        return true;
+    }
+    return false;
+}
+
+void HackRfManager::onConnectionStatedChanged(bool state)
+{
+    if(state)
+    {
+        qDebug() << "Bluetooth connection is succesfull.";
+    }
+    else
+    {
+        qDebug() << "Bluetooth connection lost.";
+    }
+}
+

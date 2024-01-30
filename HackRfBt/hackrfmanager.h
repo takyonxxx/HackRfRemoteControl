@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
+#include <iostream>
+#include <cmath>
 #include <message.h>
 #include <gattserver.h>
 #include "hackrf.h"
