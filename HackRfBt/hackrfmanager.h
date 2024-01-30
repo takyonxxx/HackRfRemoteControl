@@ -11,6 +11,7 @@
 #include <cmath>
 #include <message.h>
 #include <gattserver.h>
+#include <audiootputthread.h>
 #include "hackrf.h"
 
 #define STANDBY_MODE 0
@@ -21,7 +22,7 @@
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
 #define DEFAULT_SAMPLE_RATE             MHZ(20)
-#define DEFAULT_FREQUENCY               MHZ(100)
+#define DEFAULT_FREQUENCY               MHZ(144.5)
 #define DEFAULT_FREQUENCY_CORRECTION	60 //ppm
 #define DEFAULT_FFT_SIZE                8192 * 4
 #define DEFAULT_FFT_RATE                25 //Hz
@@ -66,6 +67,7 @@ public:
 
     void start();
     void open();
+    void onFrequencyChangeTimer();
     void handle_error(int status, const char * format, ...);
     static int _hackRF_rx_callback(hackrf_transfer* transfer);
     int hackRF_rx_callback(hackrf_transfer* transfer);
@@ -88,6 +90,7 @@ private slots:
 
 private:
     GattServer *gattServer{};
+    AudioOutputThread *audioOutputThread{};
     Message message;
 
     bool m_is_initialized;
@@ -96,7 +99,7 @@ private:
     hackrf_device *_device{};
     double previous_phase = 0.0;
     double previous_amplitude = 0.0;
-    double centerFrequency;
+    double currentFrequency;
     double deviation = 50e3;      // 50 kHz deviation
     double modulationIndex;
 

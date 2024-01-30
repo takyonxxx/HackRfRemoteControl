@@ -6,13 +6,15 @@ HackRfManager::HackRfManager(QObject *parent) :
     QObject(parent), _device(nullptr), modulationIndex(0.0)
 {
     sampleRate = DEFAULT_SAMPLE_RATE;
-    centerFrequency = DEFAULT_FREQUENCY;
+    currentFrequency = DEFAULT_FREQUENCY;
     m_device_mode    = STANDBY_MODE;
     m_is_initialized = false;
+
+    audioOutputThread = new AudioOutputThread(this, 44100.);
 }
 
 HackRfManager::~HackRfManager()
-{
+{    
     if (this->_device != nullptr) {
         int status = hackrf_stop_rx(this->_device);
         status = hackrf_stop_tx(this->_device);
@@ -20,6 +22,10 @@ HackRfManager::~HackRfManager()
         status = hackrf_close(this->_device);
         HANDLE_ERROR("Error closing hackrf: %%s\n");
         _device = nullptr;
+    }
+
+    if (audioOutputThread) {
+        delete audioOutputThread;
     }
 }
 
@@ -99,7 +105,7 @@ void HackRfManager::start()
     m_is_initialized = true;
 
     set_sample_rate(sampleRate);
-    set_center_freq(centerFrequency);
+    set_center_freq(currentFrequency);
 
     gattServer = GattServer::getInstance();
     if (gattServer)
@@ -112,6 +118,29 @@ void HackRfManager::start()
     }
 
     StartRx();
+
+//    QTimer* frequencyChangeTimer = new QTimer(this);
+//    frequencyChangeTimer->setInterval(100); // Change frequency every 100ms
+//    connect(frequencyChangeTimer, &QTimer::timeout, this, &HackRfManager::onFrequencyChangeTimer);
+//    frequencyChangeTimer->start();
+}
+
+void HackRfManager::onFrequencyChangeTimer()
+{
+    // Implement the logic to change the frequency in steps of 10kHz
+    // Here, I'm assuming you have a variable like 'currentFrequency' to keep track of the current frequency.
+    // You'll need to adjust this based on your actual implementation.
+
+    const int frequencyStep = 1e6; // Step size: 1MHz
+    currentFrequency += frequencyStep;
+
+    // Set the new frequency
+    set_center_freq(currentFrequency);
+
+    // Optionally, check if you reached a maximum frequency and stop the timer if needed
+    // if (currentFrequency >= maxFrequency) {
+    //     frequencyChangeTimer->stop();
+    // }
 }
 
 bool HackRfManager::StartRx()
@@ -167,6 +196,7 @@ bool HackRfManager::set_center_freq( double fc_hz )
         {
             int status = hackrf_set_freq( this->_device, fc_hz );
             HANDLE_ERROR("Failed to set center frequency : %%s\n");
+            qDebug() << "Freq : " << fc_hz;
             return true;
         }
     }
@@ -214,9 +244,7 @@ int HackRfManager::_hackRF_rx_callback(hackrf_transfer* transfer)
 }
 
 int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
-{
-    qDebug() << transfer->buffer_length << " bytes" << transfer->valid_length << "len";
-
+{  
     int buffer_size = transfer->buffer_length / 2;
     double* demodulated_samples = new double[buffer_size];
 
@@ -238,6 +266,18 @@ int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
         demodulated_samples[i / 2] = demodulated_fm_sample;
     }
 
+    if (audioOutputThread)
+    {
+        // Convert double array to QByteArray
+        QByteArray byteArray(reinterpret_cast<const char*>(demodulated_samples), buffer_size * sizeof(double));
+
+        // Write the QByteArray to the audio output thread
+        audioOutputThread->writeBuffer(byteArray);
+    }
+
+    // Clean up memory
+    delete[] demodulated_samples;
+
     return 0; // TODO: return -1 on error/stop
 }
 
@@ -250,7 +290,7 @@ int HackRfManager::hackRF_tx_callback(hackrf_transfer* transfer)
 {
     qDebug() << "Hackrf tx call back called with: " << transfer->buffer_length << " bytes";
     // Example: Generate a sine wave for FM modulation
-    double frequency = calculateFrequency(centerFrequency, deviation, modulationIndex);
+    double frequency = calculateFrequency(currentFrequency, deviation, modulationIndex);
     modulationIndex += 0.01; // Increase the modulation index for variation
 
     // FM modulation: Multiply the buffer by a sinusoidal waveform

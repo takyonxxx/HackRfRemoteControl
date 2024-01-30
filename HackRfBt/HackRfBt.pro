@@ -12,6 +12,7 @@ QMAKE_ASSET_CATALOGS_BUILD_PATH = $$PWD
 win32:RC_ICONS += $$\PWD\icons\hackrf.png
 
 SOURCES += \
+        audiootputthread.cpp \
         gattserver.cpp \
         gui/spectrum.cc \
         gui/spectrumview.cc \
@@ -46,6 +47,7 @@ SOURCES += \
         sdrmanager.cpp
 
 HEADERS += \
+    audiootputthread.h \
     gattserver.h \
     gui/gui.hh \
     gui/spectrum.hh \
