@@ -81,7 +81,7 @@ void HackRfManager::start()
     HANDLE_ERROR("Failed to read version string: %%s\n");
     qDebug() << "version" << version;
 
-    uint32_t bandWidth = hackrf_compute_baseband_filter_bw(uint32_t(0.75 * sampleRate));
+    uint32_t bandWidth = hackrf_compute_baseband_filter_bw(uint32_t(250e3));
     status = hackrf_set_baseband_filter_bandwidth( this->_device, bandWidth );
     HANDLE_ERROR("hackrf_set_baseband_filter_bandwidth %u: %%s", bandWidth );
     qDebug() << "bandWidth" << bandWidth;
@@ -248,22 +248,37 @@ int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
     int buffer_size = transfer->buffer_length / 2;
     double* demodulated_samples = new double[buffer_size];
 
-    for (int i = 0; i < transfer->buffer_length / 2; i += 2)
+//    for (int i = 0; i < transfer->buffer_length / 2; i += 2)
+//    {
+//        // Demodulate the FM signal (frequency demodulation)
+//        double real = transfer->buffer[i];
+//        double imag = transfer->buffer[i + 1];
+
+//        // Compute the phase angle
+//        double phase = atan2(imag, real);
+
+//        // Calculate frequency deviation (change in phase)
+//        double delta_phase = phase - previous_phase;
+//        previous_phase = phase;
+
+//        // Perform frequency demodulation to get audio signal
+//        double demodulated_fm_sample = (delta_phase / (2.0 * M_PI * sampleRate)) * 1e6; // Convert to Hz
+//        demodulated_samples[i / 2] = demodulated_fm_sample;
+//    }
+
+    for (int i = 0; i < buffer_size; i += 2)
     {
-        // Demodulate the FM signal (frequency demodulation)
+        // Demodulate the AM signal (envelope detection)
         double real = transfer->buffer[i];
         double imag = transfer->buffer[i + 1];
 
-        // Compute the phase angle
-        double phase = atan2(imag, real);
+        // Compute the amplitude (envelope)
+        double amplitude = sqrt(real * real + imag * imag);
 
-        // Calculate frequency deviation (change in phase)
-        double delta_phase = phase - previous_phase;
-        previous_phase = phase;
+        // Perform AM demodulation to get audio signal
+        double demodulated_am_sample = amplitude;
 
-        // Perform frequency demodulation to get audio signal
-        double demodulated_fm_sample = (delta_phase / (2.0 * M_PI * sampleRate)) * 1e6; // Convert to Hz
-        demodulated_samples[i / 2] = demodulated_fm_sample;
+        demodulated_samples[i / 2] = demodulated_am_sample;
     }
 
     if (audioOutputThread)
