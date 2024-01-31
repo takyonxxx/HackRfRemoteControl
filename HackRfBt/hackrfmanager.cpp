@@ -81,7 +81,7 @@ void HackRfManager::start()
     HANDLE_ERROR("Failed to read version string: %%s\n");
     qDebug() << "version" << version;
 
-    uint32_t bandWidth = hackrf_compute_baseband_filter_bw(uint32_t(250e3));
+    uint32_t bandWidth = hackrf_compute_baseband_filter_bw(uint32_t(200e3));
     status = hackrf_set_baseband_filter_bandwidth( this->_device, bandWidth );
     HANDLE_ERROR("hackrf_set_baseband_filter_bandwidth %u: %%s", bandWidth );
     qDebug() << "bandWidth" << bandWidth;
@@ -165,8 +165,7 @@ bool HackRfManager::stop_Rx()
 }
 
 bool HackRfManager::StartTx()
-{
-    hackrf_set_amp_enable(this->_device, 1);
+{    
     int status = hackrf_start_tx(this->_device,
                                  _hackRF_tx_callback,
                                  (void *)this);
@@ -175,8 +174,7 @@ bool HackRfManager::StartTx()
 }
 
 bool HackRfManager::stop_Tx()
-{
-    hackrf_set_amp_enable(this->_device, 0);
+{    
     if ( m_is_initialized && m_device_mode == RX_MODE )
     {
 
@@ -244,49 +242,34 @@ int HackRfManager::_hackRF_rx_callback(hackrf_transfer* transfer)
 }
 
 int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
-{  
+{
+//    qDebug() << transfer->valid_length;
+
     int buffer_size = transfer->buffer_length / 2;
     double* demodulated_samples = new double[buffer_size];
 
-//    for (int i = 0; i < transfer->buffer_length / 2; i += 2)
-//    {
-//        // Demodulate the FM signal (frequency demodulation)
-//        double real = transfer->buffer[i];
-//        double imag = transfer->buffer[i + 1];
-
-//        // Compute the phase angle
-//        double phase = atan2(imag, real);
-
-//        // Calculate frequency deviation (change in phase)
-//        double delta_phase = phase - previous_phase;
-//        previous_phase = phase;
-
-//        // Perform frequency demodulation to get audio signal
-//        double demodulated_fm_sample = (delta_phase / (2.0 * M_PI * sampleRate)) * 1e6; // Convert to Hz
-//        demodulated_samples[i / 2] = demodulated_fm_sample;
-//    }
-
-    for (int i = 0; i < buffer_size; i += 2)
+    for (int i = 0; i < transfer->buffer_length / 2; i += 2)
     {
-        // Demodulate the AM signal (envelope detection)
+        // Demodulate the FM signal (frequency demodulation)
         double real = transfer->buffer[i];
         double imag = transfer->buffer[i + 1];
 
-        // Compute the amplitude (envelope)
-        double amplitude = sqrt(real * real + imag * imag);
+        // Compute the phase angle
+        double phase = atan2(imag, real);
 
-        // Perform AM demodulation to get audio signal
-        double demodulated_am_sample = amplitude;
+        // Calculate frequency deviation (change in phase)
+        double delta_phase = phase - previous_phase;
+        previous_phase = phase;
 
-        demodulated_samples[i / 2] = demodulated_am_sample;
+        // Perform frequency demodulation to get audio signal
+        double demodulated_fm_sample = (delta_phase / (2.0 * M_PI * sampleRate)) * 1e6; // Convert to Hz
+        demodulated_samples[i / 2] = demodulated_fm_sample;
     }
 
     if (audioOutputThread)
     {
         // Convert double array to QByteArray
         QByteArray byteArray(reinterpret_cast<const char*>(demodulated_samples), buffer_size * sizeof(double));
-
-        // Write the QByteArray to the audio output thread
         audioOutputThread->writeBuffer(byteArray);
     }
 

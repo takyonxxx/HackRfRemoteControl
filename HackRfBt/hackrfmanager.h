@@ -21,8 +21,8 @@
 #define GHZ(x) ((uint64_t)(x) * 1000000000)
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
-#define DEFAULT_SAMPLE_RATE             MHZ(8)
-#define DEFAULT_FREQUENCY               MHZ(144.5)
+#define DEFAULT_SAMPLE_RATE             MHZ(20)
+#define DEFAULT_FREQUENCY               MHZ(100)
 #define DEFAULT_FREQUENCY_CORRECTION	60 //ppm
 #define DEFAULT_FFT_SIZE                8192 * 4
 #define DEFAULT_FFT_RATE                25 //Hz
