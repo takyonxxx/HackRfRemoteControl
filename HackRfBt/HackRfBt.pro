@@ -182,6 +182,7 @@ unix:!macx{
 #    sudo systemctl enable hackrf.service
 #    sudo systemctl start hackrf.service
 #    sudo systemctl status hackrf.service
+#    SoapySDRUtil --probe="driver=hackrf"
 
     INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include
