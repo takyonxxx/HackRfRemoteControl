@@ -147,6 +147,7 @@ unix:!macx{
 #    sudo apt-get install libgl-dev
 #    sudo apt-get install qtmultimedia5-dev
 #    sudo apt-get install hackrf
+#    sudo apt-get install -y libhackrf-dev
 #    nmap -sn 192.168.1.0/24
 
 #    start_hackrf.sh
@@ -185,12 +186,14 @@ unix:!macx{
     INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include
     INCLUDEPATH += /usr/local/lib
-    INCLUDEPATH += /usr/lib/x86_64-linux-gnu
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3
-
-    LIBS += -L/usr/lib/arm-linux-gnueabihf/ -lhackrf
     INCLUDEPATH += /usr/include/libhackrf
-    PRE_TARGETDEPS += /usr/lib/arm-linux-gnueabihf/libhackrf.a
+    INCLUDEPATH += /usr/lib/x86_64-linux-gnu
+    INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
+    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf
+
+    # LIBS += -L/usr/lib/arm-linux-gnueabihf/ -lhackrf
+    # INCLUDEPATH += /usr/include/libhackrf
+    # PRE_TARGETDEPS += /usr/lib/arm-linux-gnueabihf/libhackrf.a
 }
 
 ios {

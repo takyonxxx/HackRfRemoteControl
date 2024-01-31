@@ -299,8 +299,7 @@ int HackRfManager::hackRF_tx_callback(hackrf_transfer* transfer)
 
     // Transmit the sample
     hackrf_set_freq(this->_device, frequency);
-    // Sleep for a short duration to control the modulation rate
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    QThread::msleep(10);
     return 0; // TODO: return -1 on error/stop
 }
 
