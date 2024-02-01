@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     if (HackRfManager::isHackRfAvailable()) {
         qDebug() << "Starting HackRF device.";
         hackRfManager.start();
+        hackRfManager.StartRx();
     }
     else if (rtlsdr_get_device_count() > 0)
     {

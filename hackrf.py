@@ -79,20 +79,24 @@ class hackrf(gr.top_block, Qt.QWidget):
         self._audio_gain_range = qtgui.Range(0, 1, 0.05, 0.2, 200)
         self._audio_gain_win = qtgui.RangeWidget(self._audio_gain_range, self.set_audio_gain, "'audio_gain'", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_layout.addWidget(self._audio_gain_win)
-        self.soapy_hackrf_source_0 = None
-        dev = 'driver=hackrf'
+        self.soapy_custom_source_0 = None
+        dev = 'driver=' + 'hackrf'
         stream_args = ''
         tune_args = ['']
         settings = ['']
-
-        self.soapy_hackrf_source_0 = soapy.source(dev, "fc32", 1, '',
+        self.soapy_custom_source_0 = soapy.source(dev, "fc32",
+                                  1, '',
                                   stream_args, tune_args, settings)
-        self.soapy_hackrf_source_0.set_sample_rate(0, samp_rate)
-        self.soapy_hackrf_source_0.set_bandwidth(0, 0)
-        self.soapy_hackrf_source_0.set_frequency(0, freq)
-        self.soapy_hackrf_source_0.set_gain(0, 'AMP', False)
-        self.soapy_hackrf_source_0.set_gain(0, 'LNA', min(max(16, 0.0), 40.0))
-        self.soapy_hackrf_source_0.set_gain(0, 'VGA', min(max(16, 0.0), 62.0))
+        self.soapy_custom_source_0.set_sample_rate(0, samp_rate)
+        self.soapy_custom_source_0.set_bandwidth(0, 2000000)
+        self.soapy_custom_source_0.set_antenna(0, "TX/RX")
+        self.soapy_custom_source_0.set_frequency(0, freq)
+        self.soapy_custom_source_0.set_frequency_correction(0, 0)
+        self.soapy_custom_source_0.set_gain_mode(0, False)
+        self.soapy_custom_source_0.set_gain(0, 10)
+        self.soapy_custom_source_0.set_dc_offset_mode(0, False)
+        self.soapy_custom_source_0.set_dc_offset(0, 0)
+        self.soapy_custom_source_0.set_iq_balance(0, 0)
         self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
                 interpolation=12,
                 decimation=5,
@@ -173,8 +177,8 @@ class hackrf(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_xx_0, 0), (self.low_pass_filter_0, 0))
         self.connect((self.low_pass_filter_0, 0), (self.rational_resampler_xxx_0, 0))
         self.connect((self.rational_resampler_xxx_0, 0), (self.analog_fm_demod_cf_0, 0))
-        self.connect((self.soapy_hackrf_source_0, 0), (self.blocks_multiply_xx_0, 0))
-        self.connect((self.soapy_hackrf_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.soapy_custom_source_0, 0), (self.blocks_multiply_xx_0, 0))
+        self.connect((self.soapy_custom_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
 
 
     def closeEvent(self, event):
@@ -193,7 +197,6 @@ class hackrf(gr.top_block, Qt.QWidget):
         self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
         self.low_pass_filter_0.set_taps(firdes.low_pass(1, self.samp_rate, 75e3, 25000, window.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0.set_frequency_range(self.freq, self.samp_rate)
-        self.soapy_hackrf_source_0.set_sample_rate(0, self.samp_rate)
 
     def get_freq(self):
         return self.freq
@@ -202,7 +205,7 @@ class hackrf(gr.top_block, Qt.QWidget):
         self.freq = freq
         self.analog_sig_source_x_0.set_frequency((self.freq-self.channel_freq))
         self.qtgui_freq_sink_x_0.set_frequency_range(self.freq, self.samp_rate)
-        self.soapy_hackrf_source_0.set_frequency(0, self.freq)
+        self.soapy_custom_source_0.set_frequency(0, self.freq)
 
     def get_channel_freq(self):
         return self.channel_freq

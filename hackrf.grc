@@ -51,7 +51,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [672, 56.0]
+    coordinate: [536, 16.0]
     rotation: 0
     state: true
 - name: channel_freq
@@ -118,7 +118,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1032, 376.0]
+    coordinate: [744, 328.0]
     rotation: 0
     state: true
 - name: analog_sig_source_x_0
@@ -141,7 +141,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [152, 396.0]
+    coordinate: [56, 324.0]
     rotation: 0
     state: true
 - name: audio_sink_0
@@ -158,7 +158,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1248, 348.0]
+    coordinate: [1040, 356.0]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -176,7 +176,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1176, 436.0]
+    coordinate: [904, 356.0]
     rotation: 0
     state: true
 - name: blocks_multiply_xx_0
@@ -194,7 +194,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 424.0]
+    coordinate: [272, 340.0]
     rotation: 0
     state: true
 - name: low_pass_filter_0
@@ -218,7 +218,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [672, 388.0]
+    coordinate: [400, 328.0]
     rotation: 0
     state: true
 - name: qtgui_freq_sink_x_0
@@ -299,7 +299,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [400, 276.0]
+    coordinate: [288, 228.0]
     rotation: 0
     state: true
 - name: rational_resampler_xxx_0
@@ -319,30 +319,50 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 412.0]
+    coordinate: [568, 344.0]
     rotation: 0
     state: true
-- name: soapy_hackrf_source_0
-  id: soapy_hackrf_source
+- name: soapy_custom_source_0
+  id: soapy_custom_source
   parameters:
     affinity: ''
+    agc0: 'False'
+    agc1: 'False'
     alias: ''
-    amp: 'False'
-    bandwidth: '0'
-    center_freq: freq
+    antenna0: '"TX/RX"'
+    antenna1: ''
+    bandwidth0: '2000000'
+    bandwidth1: '0'
+    center_freq0: freq
+    center_freq1: '0'
     comment: ''
+    dc_offset0: '0'
+    dc_offset1: '0'
+    dc_removal0: 'False'
+    dc_removal1: 'True'
     dev_args: ''
-    gain: '16'
+    driver: hackrf
+    freq_correction0: '0'
+    freq_correction1: '0'
+    gain0: '10'
+    gain1: '0'
+    iq_balance0: '0'
+    iq_balance1: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
+    nchan: '1'
     samp_rate: samp_rate
+    settings0: ''
+    settings1: ''
+    stream_args: ''
+    tune_args0: ''
+    tune_args1: ''
     type: fc32
-    vga: '16'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [152, 284.0]
+    coordinate: [56, 140.0]
     rotation: 0
     state: true
 
@@ -353,8 +373,8 @@ connections:
 - [blocks_multiply_xx_0, '0', low_pass_filter_0, '0']
 - [low_pass_filter_0, '0', rational_resampler_xxx_0, '0']
 - [rational_resampler_xxx_0, '0', analog_fm_demod_cf_0, '0']
-- [soapy_hackrf_source_0, '0', blocks_multiply_xx_0, '0']
-- [soapy_hackrf_source_0, '0', qtgui_freq_sink_x_0, '0']
+- [soapy_custom_source_0, '0', blocks_multiply_xx_0, '0']
+- [soapy_custom_source_0, '0', qtgui_freq_sink_x_0, '0']
 
 metadata:
   file_format: 1

@@ -3,14 +3,28 @@
 #define HANDLE_ERROR(format, ...) this->handle_error(status, format, ##__VA_ARGS__)
 
 HackRfManager::HackRfManager(QObject *parent) :
-    QObject(parent), _device(nullptr), modulationIndex(0.0)
+    QObject(parent), _device(nullptr), modulationIndex(0.0), m_ptt(false)
 {
     sampleRate = DEFAULT_SAMPLE_RATE;
     currentFrequency = DEFAULT_FREQUENCY;
     m_device_mode    = STANDBY_MODE;
     m_is_initialized = false;
 
-    audioOutputThread = new AudioOutputThread(this, 44100.);
+    currentDemod    = HackRfManager::DEMOD_WFM;
+    currentFreqMod  = FreqMod::MHZ;
+
+    gattServer = GattServer::getInstance();
+    if (gattServer)
+    {
+        qDebug() << "Starting gatt service";
+        QObject::connect(gattServer, &GattServer::connectionState, this, &HackRfManager::onConnectionStatedChanged);
+        QObject::connect(gattServer, &GattServer::dataReceived, this, &HackRfManager::onDataReceived);
+        QObject::connect(gattServer, &GattServer::sendInfo, this, &HackRfManager::onInfoReceived);
+        gattServer->startBleService();
+    }
+
+    tcpClient = new TcpClient(this);
+    audioOutputThread = new AudioOutputThread(this, 48000);
 }
 
 HackRfManager::~HackRfManager()
@@ -106,41 +120,6 @@ void HackRfManager::start()
 
     set_sample_rate(sampleRate);
     set_center_freq(currentFrequency);
-
-    gattServer = GattServer::getInstance();
-    if (gattServer)
-    {
-        qDebug() << "Starting gatt service";
-        QObject::connect(gattServer, &GattServer::connectionState, this, &HackRfManager::onConnectionStatedChanged);
-        QObject::connect(gattServer, &GattServer::dataReceived, this, &HackRfManager::onDataReceived);
-        QObject::connect(gattServer, &GattServer::sendInfo, this, &HackRfManager::onInfoReceived);
-        gattServer->startBleService();
-    }
-
-    StartRx();
-
-//    QTimer* frequencyChangeTimer = new QTimer(this);
-//    frequencyChangeTimer->setInterval(100); // Change frequency every 100ms
-//    connect(frequencyChangeTimer, &QTimer::timeout, this, &HackRfManager::onFrequencyChangeTimer);
-//    frequencyChangeTimer->start();
-}
-
-void HackRfManager::onFrequencyChangeTimer()
-{
-    // Implement the logic to change the frequency in steps of 10kHz
-    // Here, I'm assuming you have a variable like 'currentFrequency' to keep track of the current frequency.
-    // You'll need to adjust this based on your actual implementation.
-
-    const int frequencyStep = 1e6; // Step size: 1MHz
-    currentFrequency += frequencyStep;
-
-    // Set the new frequency
-    set_center_freq(currentFrequency);
-
-    // Optionally, check if you reached a maximum frequency and stop the timer if needed
-    // if (currentFrequency >= maxFrequency) {
-    //     frequencyChangeTimer->stop();
-    // }
 }
 
 bool HackRfManager::StartRx()
@@ -194,7 +173,8 @@ bool HackRfManager::set_center_freq( double fc_hz )
         {
             int status = hackrf_set_freq( this->_device, fc_hz );
             HANDLE_ERROR("Failed to set center frequency : %%s\n");
-            qDebug() << "Freq : " << fc_hz;
+            currentFrequency = fc_hz;
+            qDebug() << "Current Frequency : " << currentFrequency;
             return true;
         }
     }
@@ -245,10 +225,10 @@ int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
 {
 //    qDebug() << transfer->valid_length;
 
-    int buffer_size = transfer->buffer_length / 2;
-    double* demodulated_samples = new double[buffer_size];
+    int buffer_size = transfer->valid_length / 2;
+    QVector<double> demodulated_samples(buffer_size);
 
-    for (int i = 0; i < transfer->buffer_length / 2; i += 2)
+    for (int i = 0; i < transfer->valid_length / 2; i += 2)
     {
         // Demodulate the FM signal (frequency demodulation)
         double real = transfer->buffer[i];
@@ -266,16 +246,27 @@ int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
         demodulated_samples[i / 2] = demodulated_fm_sample;
     }
 
-    if (audioOutputThread)
+    if (!m_ptt)
     {
-        // Convert double array to QByteArray
-        QByteArray byteArray(reinterpret_cast<const char*>(demodulated_samples), buffer_size * sizeof(double));
-        audioOutputThread->writeBuffer(byteArray);
+        if (tcpClient)
+        {
+            int packetSize = 2048;  // Reduced packet size
+            int numPackets = buffer_size / packetSize;
+
+            for (int i = 0; i < numPackets; ++i)
+            {
+                int offset = i * packetSize;
+                int packetLength = std::min(packetSize, buffer_size - offset);
+                // Use QVector's data() to get a pointer to the array
+                QByteArray soundBuffer(reinterpret_cast<const char*>(demodulated_samples.data()), packetLength);
+//                tcpClient->sendData(soundBuffer);
+                if (audioOutputThread)
+                {
+                    audioOutputThread->writeBuffer(soundBuffer);
+                }
+            }
+        }
     }
-
-    // Clean up memory
-    delete[] demodulated_samples;
-
     return 0; // TODO: return -1 on error/stop
 }
 
@@ -308,6 +299,27 @@ void HackRfManager::onInfoReceived(QString info)
     qDebug() << info;
 }
 
+void HackRfManager::sendCommand(uint8_t command, uint8_t value)
+{
+    // Convert the uint32_t value to a QByteArray
+    QByteArray payload;
+    payload.append(reinterpret_cast<const char*>(&value), sizeof(value));
+
+    // Create the message and send it
+    QByteArray sendData;
+    createMessage(command, mWrite, payload, &sendData);
+    gattServer->writeValue(sendData);
+}
+
+void HackRfManager::sendString(uint8_t command, const QString& value)
+{
+    QByteArray sendData;
+    QByteArray bytedata;
+    bytedata = value.toLocal8Bit();
+    createMessage(command, mWrite, bytedata, &sendData);
+    gattServer->writeValue(sendData);
+}
+
 void HackRfManager::onDataReceived(QByteArray data)
 {
     uint8_t parsedCommand;
@@ -319,6 +331,189 @@ void HackRfManager::onDataReceived(QByteArray data)
 
     bool ok;
     int value =  parsedValue.toHex().toInt(&ok, 16);
+
+    if(rw == mWrite)
+    {
+        switch (parsedCommand)
+        {
+        case mSetPtt:
+        {
+            if(value == 1)
+            {
+                m_ptt = true;
+                stop_Rx();
+                int status = hackrf_close(this->_device);
+                HANDLE_ERROR("Error closing hackrf: %%s\n");
+
+                status = hackrf_exit();
+                HANDLE_ERROR("Error exiting hackrf: %%s\n");
+
+                _device = nullptr;
+                qDebug() << "Ptt On";
+            }
+            else
+            {
+                m_ptt = false;
+                start();
+                StartRx();
+                qDebug() << "Ptt Off";
+            }
+
+            sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
+            break;
+        }
+        case mSetFreqMod:
+        {
+            if (value >= FreqMod::HZ && value <= FreqMod::GHZ)
+            {
+                FreqMod selectedFreqMod = static_cast<FreqMod>(value);
+                currentFreqMod = selectedFreqMod;
+                sendCommand(mGetFreqMod, static_cast<uint8_t>(selectedFreqMod));
+                qDebug() << "Current freq mod:" << currentFreqMod;
+            }
+            break;
+        }
+        case mSetDeMod:
+        {
+            if (value >= HackRfManager::DEMOD_AM && value <= HackRfManager::DEMOD_BPSK31)
+            {
+                HackRfManager::Demod selectedDemod = static_cast<HackRfManager::Demod>(value);
+                currentDemod = selectedDemod;
+                sendCommand(mGetDeMod, static_cast<uint8_t>(selectedDemod));
+                qDebug() << "Current demod:" << enumToString(static_cast<HackRfManager::Demod>(currentDemod));
+            }
+            break;
+        }
+        case mIncFreq:
+        {
+            auto current_freq =  currentFrequency;
+            double increment = 1.0;
+
+            switch (currentFreqMod) {
+            case HZ:
+                // Do nothing, as the increment is in Hertz
+                break;
+            case KHZ:
+                increment *= 1e3; // Convert increment to Kilohertz
+                break;
+            case MHZ:
+                increment *= 1e6; // Convert increment to Megahertz
+                break;
+            case GHZ:
+                increment *= 1e9; // Convert increment to Gigahertz
+                break;
+            }
+            // Update the tuner frequency
+            set_center_freq(current_freq + increment);
+            currentFrequency =  current_freq + increment;
+            QString combinedText = QString("get_freq,%1").arg(current_freq);
+            QByteArray data = combinedText.toUtf8();
+            sendString(mData, data);
+            break;
+        }
+        case mDecFreq:
+        {
+            auto current_freq = currentFrequency;
+            double increment = 1.0;
+
+            switch (currentFreqMod) {
+            case HZ:
+                // Do nothing, as the increment is in Hertz
+                break;
+            case KHZ:
+                increment *= 1e3; // Convert increment to Kilohertz
+                break;
+            case MHZ:
+                increment *= 1e6; // Convert increment to Megahertz
+                break;
+            case GHZ:
+                increment *= 1e9; // Convert increment to Gigahertz
+                break;
+            }
+            // Update the tuner frequency
+            set_center_freq(current_freq - increment);
+            currentFrequency =  current_freq - increment;
+            QString combinedText = QString("get_freq,%1").arg(current_freq);
+            QByteArray data = combinedText.toUtf8();
+            sendString(mData, data);
+            break;
+        }
+        case mData:
+        {
+            auto text = QString(parsedValue.data());
+            QStringList parts = text.split(',');
+
+            // Extract the command and value
+            QString command = parts.value(0);
+            QString valueString = parts.value(1);
+
+            // Convert the value string to uint64_t to handle large values
+            bool conversionOkValue;
+            auto value = valueString.toDouble(&conversionOkValue);
+            if (command == "set_freq") {
+                set_center_freq(value);
+                currentFrequency = value;
+                auto current_freq =  currentFrequency;
+                QString combinedText = QString("get_freq,%1").arg(current_freq);
+                QByteArray data = combinedText.toUtf8();
+                sendString(mData, data);
+
+                if (current_freq >= 1e9) {
+                    currentFreqMod = FreqMod::GHZ;
+                    qDebug() << "Set frequency:" << current_freq / 1e9 << "GHz";
+                } else if (current_freq >= 1e6) {
+                    currentFreqMod = FreqMod::MHZ;
+                    qDebug() << "Set frequency:" << current_freq / 1e6 << "MHz";
+                } else if (current_freq >= 1e3) {
+                    currentFreqMod = FreqMod::KHZ;
+                    qDebug() << "Set frequency:" << current_freq / 1e3 << "KHz";
+                } else {
+                    currentFreqMod = FreqMod::HZ;
+                    qDebug() << "Set frequency:" << current_freq << "Hz";
+                }
+                sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
+            }
+            else if (command == "set_ip") {
+                tcpClient->connectToServer(valueString, 5001);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    else if(rw == mRead)
+    {
+        switch (parsedCommand)
+        {
+        case mGetFreq:
+        {
+            auto current_freq =  currentFrequency;
+            QString combinedText = QString("get_freq,%1").arg(current_freq);
+            QByteArray data = combinedText.toUtf8();
+            sendString(mData, data);
+            break;
+        }
+        case mGetFreqMod:
+        {
+            sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
+            break;
+        }
+        case mGetDeMod:
+        {
+            sendCommand(mGetDeMod, static_cast<uint8_t>(currentDemod));
+            break;
+        }
+        case mGetPtt:
+        {
+            sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
 }
 
 

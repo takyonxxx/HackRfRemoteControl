@@ -13,6 +13,7 @@
 #include <gattserver.h>
 #include <audiootputthread.h>
 #include "hackrf.h"
+#include "tcpclient.h"
 
 #define STANDBY_MODE 0
 #define RX_MODE      1
@@ -34,12 +35,32 @@
 
 using namespace std;
 
+
 class HackRfManager : public QObject
 {
     Q_OBJECT
 public:
     explicit HackRfManager(QObject *parent = nullptr);
     ~HackRfManager();
+
+public:
+    typedef enum {
+        DEMOD_AM,
+        DEMOD_WFM,
+        DEMOD_NFM,
+        DEMOD_USB,
+        DEMOD_LSB,
+        DEMOD_CW,
+        DEMOD_BPSK31
+    } Demod;
+
+public:
+    typedef enum {
+        HZ,
+        KHZ,
+        MHZ,
+        GHZ
+    } FreqMod;
 
     int m_device_mode;    // mode: 0=standby 1=Rx 2=Tx
     FILE* fd = NULL;
@@ -87,6 +108,8 @@ private slots:
     void onInfoReceived(QString);
     void createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result);
     bool parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw);
+    void sendCommand(uint8_t command, uint8_t value);
+    void sendString(uint8_t command, const QString&);
 
 private:
     GattServer *gattServer{};
@@ -102,6 +125,34 @@ private:
     double currentFrequency;
     double deviation = 50e3;      // 50 kHz deviation
     double modulationIndex;
+    bool m_ptt;
+
+    Demod currentDemod;
+    FreqMod currentFreqMod;
+    TcpClient *tcpClient{};
+
+    QString enumToString(HackRfManager::Demod demod)
+    {
+        switch (demod)
+        {
+        case HackRfManager::DEMOD_AM:
+            return "AM";
+        case HackRfManager::DEMOD_WFM:
+            return "WFM";
+        case HackRfManager::DEMOD_NFM:
+            return "NFM";
+        case HackRfManager::DEMOD_USB:
+            return "USB";
+        case HackRfManager::DEMOD_LSB:
+            return "LSB";
+        case HackRfManager::DEMOD_CW:
+            return "CW";
+        case HackRfManager::DEMOD_BPSK31:
+            return "BPSK31";
+        default:
+            return "Unknown";
+        }
+    }
 
     double calculateFrequency(double baseFrequency, double deviation, double modulationIndex) {
         return baseFrequency + deviation * std::sin(modulationIndex);
