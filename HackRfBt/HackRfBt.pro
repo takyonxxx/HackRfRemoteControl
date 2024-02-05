@@ -4,6 +4,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17 cmdline
 
+CONFIG += qwt
+
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
@@ -19,6 +21,7 @@ SOURCES += \
         hackrfmanager.cpp \
         main.cpp \
         message.cpp \
+        modulator.cpp \
         receiver/audiopostproc.cc \
         receiver/configuration.cc \
         receiver/demodulator.cc \
@@ -47,12 +50,14 @@ SOURCES += \
         sdrmanager.cpp
 
 HEADERS += \
+    IHackRFData.h \
     audiootputthread.h \
-    gattserver.h \
+    gattserver.h \   
     gui/gui.hh \
     gui/spectrum.hh \
     gui/spectrumview.hh \
     hackrfmanager.h \
+    modulator.h \   
     receiver/audiopostproc.hh \
     receiver/configuration.hh \
     receiver/demodulator.hh \
@@ -108,32 +113,36 @@ macos {
     QMAKE_ASSET_CATALOGS = $$PWD/macos/Assets.xcassets
     QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
 
+    INCLUDEPATH += /usr/local/lib
+    INCLUDEPATH += /opt/local/include 
+    INCLUDEPATH += /usr/local/include
+    INCLUDEPATH += $$PWD/gnuradio
+    INCLUDEPATH += $$PWD/qwt
+
     INCLUDEPATH += /opt/homebrew/opt/rtl-sdr/include
     INCLUDEPATH += /opt/homebrew/opt/fftw/include
     INCLUDEPATH += /opt/homebrew/opt/portaudio/include
-    LIBS += /opt/homebrew/opt/rtl-sdr/lib/librtlsdr.dylib /opt/homebrew/opt/fftw/lib/libfftw3.dylib /opt/homebrew/opt/portaudio/lib/libportaudio.dylib
-
     INCLUDEPATH += /opt/homebrew/opt/hackrf/include/libhackrf
+
+    LIBS += -L/usr/local/lib \
+    -lboost_system
+    -lboost_program_options
+    -lboost_thread
+
+    LIBS += -L/opt/local/lib/libgnuradio-analog.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-blocks.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-digital.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-filter.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-fft.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-runtime.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-audio.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-osmosdr.dylib
+    LIBS += -L/opt/local/lib/libgnuradio-uhd.dylib
+
+    LIBS += /opt/homebrew/opt/rtl-sdr/lib/librtlsdr.dylib /opt/homebrew/opt/fftw/lib/libfftw3.dylib /opt/homebrew/opt/portaudio/lib/libportaudio.dylib    
     LIBS += /opt/homebrew/opt/hackrf/lib/libhackrf.dylib
 
-#    INCLUDEPATH += /usr/local/lib
-#    INCLUDEPATH += /usr/local/include
-#    INCLUDEPATH += /usr/local/Cellar/boost/1.80.0/include
-#    INCLUDEPATH += /usr/local/Cellar/gnuradio/3.10.4.0/include
-
-#    LIBS += -L/usr/local/lib \
-#    -lboost_system
-#    -lboost_program_options
-#    -lboost_thread
-
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-analog.dylib
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-blocks.dylib
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-digital.dylib
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-filter.dylib
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-fft.dylib
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-runtime.dylib
-#    LIBS += -L/usr/local/Cellar/gnuradio/3.10.4.0/lib/libgnuradio-audio.dylib
-
+    LIBS += -L/opt/local/lib/libqwt.dylib
 }
 
 unix:!macx{

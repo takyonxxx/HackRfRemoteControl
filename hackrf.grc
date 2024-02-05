@@ -66,7 +66,7 @@ blocks:
     start: 80e6
     step: '0.1'
     stop: 108e6
-    value: 100e6
+    value: 99.7e6
     widget: counter_slider
   states:
     bus_sink: false
@@ -344,7 +344,7 @@ blocks:
     driver: hackrf
     freq_correction0: '0'
     freq_correction1: '0'
-    gain0: '10'
+    gain0: '60'
     gain1: '0'
     iq_balance0: '0'
     iq_balance1: '0'

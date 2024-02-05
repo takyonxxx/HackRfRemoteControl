@@ -13,6 +13,7 @@
 #include <gattserver.h>
 #include <audiootputthread.h>
 #include "hackrf.h"
+#include "IHackRFData.h"
 #include "tcpclient.h"
 
 #define STANDBY_MODE 0
@@ -22,7 +23,7 @@
 #define GHZ(x) ((uint64_t)(x) * 1000000000)
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
-#define DEFAULT_SAMPLE_RATE             MHZ(20)
+#define DEFAULT_SAMPLE_RATE             MHZ(8)
 #define DEFAULT_FREQUENCY               MHZ(100)
 #define DEFAULT_FREQUENCY_CORRECTION	60 //ppm
 #define DEFAULT_FFT_SIZE                8192 * 4
@@ -65,6 +66,9 @@ public:
     int m_device_mode;    // mode: 0=standby 1=Rx 2=Tx
     FILE* fd = NULL;
 
+    int HackRFRxCallback(int8_t* buffer, uint32_t length);
+    int HackRFTxCallback(int8_t* buffer, uint32_t length);
+
     static bool isHackRfAvailable() {
         // Initialize HackRF library
         hackrf_device* device = nullptr;
@@ -86,14 +90,12 @@ public:
         return result == HACKRF_SUCCESS;
     }
 
-    void start();
-    void open();
+    bool Open(IHackRFData *handler);
     void onFrequencyChangeTimer();
-    void handle_error(int status, const char * format, ...);
-    static int _hackRF_rx_callback(hackrf_transfer* transfer);
-    int hackRF_rx_callback(hackrf_transfer* transfer);
-    static int _hackRF_tx_callback(hackrf_transfer* transfer);
-    int hackRF_tx_callback(hackrf_transfer* transfer);
+    bool handle_error(int status, const char * format, ...);
+
+//    int hackRF_tx_callback(hackrf_transfer* transfer);
+//    int hackRF_rx_callback(hackrf_transfer* transfer);
     bool set_sample_rate( double rate );
     bool set_center_freq( double fc_hz );
 
@@ -112,6 +114,8 @@ private slots:
     void sendString(uint8_t command, const QString&);
 
 private:
+    IHackRFData *mRxHandler;
+    IHackRFData *mTxHandler;
     GattServer *gattServer{};
     AudioOutputThread *audioOutputThread{};
     Message message;
@@ -125,6 +129,12 @@ private:
     double currentFrequency;
     double deviation = 50e3;      // 50 kHz deviation
     double modulationIndex;
+
+    double fm_phase;
+    double fm_deviation;
+    uint32_t hackrf_sample = 2000000;
+    float * output;
+
     bool m_ptt;
 
     Demod currentDemod;

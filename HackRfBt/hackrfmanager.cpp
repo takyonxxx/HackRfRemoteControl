@@ -2,6 +2,16 @@
 
 #define HANDLE_ERROR(format, ...) this->handle_error(status, format, ##__VA_ARGS__)
 
+int _hackrf_rx_callback(hackrf_transfer *transfer) {
+    HackRfManager *obj = (HackRfManager *)transfer->rx_ctx;
+    return obj->HackRFRxCallback((int8_t *)transfer->buffer, transfer->valid_length);
+}
+
+int _hackrf_tx_callback(hackrf_transfer *transfer) {
+    HackRfManager *obj = (HackRfManager *)transfer->tx_ctx;
+    return obj->HackRFTxCallback((int8_t *)transfer->buffer, transfer->valid_length);
+}
+
 HackRfManager::HackRfManager(QObject *parent) :
     QObject(parent), _device(nullptr), modulationIndex(0.0), m_ptt(false)
 {
@@ -43,7 +53,17 @@ HackRfManager::~HackRfManager()
     }
 }
 
-void HackRfManager::handle_error(int status, const char * format, ...)
+int HackRfManager::HackRFRxCallback(int8_t* buffer, uint32_t length)
+{
+    return mRxHandler->onData(buffer, length);
+}
+
+int HackRfManager::HackRFTxCallback(int8_t* buffer, uint32_t length)
+{
+    return mTxHandler->onData(buffer, length);
+}
+
+bool HackRfManager::handle_error(int status, const char * format, ...)
 {
     if (status != 0) {
         char buffer[256];
@@ -55,13 +75,16 @@ void HackRfManager::handle_error(int status, const char * format, ...)
         fprintf(stderr, "%s", hackrf_error_name(static_cast<hackrf_error>(status)));
         hackrf_close(this->_device);
         hackrf_exit();
-        exit(1);
+        return false;
     }
 }
 
-void HackRfManager::start()
+bool HackRfManager::Open(IHackRFData *handler)
 {
-    int status = -1;    
+    int status = -1;
+
+    mRxHandler = handler;
+
     status = hackrf_init();
     HANDLE_ERROR("hackrf_init() failed: %s\n");
 
@@ -95,7 +118,7 @@ void HackRfManager::start()
     HANDLE_ERROR("Failed to read version string: %%s\n");
     qDebug() << "version" << version;
 
-    uint32_t bandWidth = hackrf_compute_baseband_filter_bw(uint32_t(200e3));
+    uint32_t bandWidth = hackrf_compute_baseband_filter_bw(uint32_t(300e3));
     status = hackrf_set_baseband_filter_bandwidth( this->_device, bandWidth );
     HANDLE_ERROR("hackrf_set_baseband_filter_bandwidth %u: %%s", bandWidth );
     qDebug() << "bandWidth" << bandWidth;
@@ -113,19 +136,24 @@ void HackRfManager::start()
     hackrf_set_amp_enable(this->_device, 0);
 
     /* antenna port power control */
-    status = hackrf_set_antenna_enable(this->_device, 1);
-    HANDLE_ERROR("Failed to enable antenna DC bias: %%s\n");    
+    status = hackrf_set_antenna_enable(this->_device, 0);
+    HANDLE_ERROR("Failed to enable antenna DC bias: %%s\n");
+
+    // Additional settings for FM demodulation
+    hackrf_set_txvga_gain(_device, 20);      // Set TX VGA gain
 
     m_is_initialized = true;
 
     set_sample_rate(sampleRate);
     set_center_freq(currentFrequency);
+
+    return true;
 }
 
 bool HackRfManager::StartRx()
-{    
+{
     int status = hackrf_start_rx(this->_device,
-                                 _hackRF_rx_callback,
+                                 _hackrf_rx_callback,
                                  (void *)this);
     HANDLE_ERROR("Failed to start RX streaming: %%s\n");
     return true;
@@ -146,7 +174,7 @@ bool HackRfManager::stop_Rx()
 bool HackRfManager::StartTx()
 {    
     int status = hackrf_start_tx(this->_device,
-                                 _hackRF_tx_callback,
+                                 _hackrf_tx_callback,
                                  (void *)this);
     HANDLE_ERROR("Failed to start TX streaming: %%s\n");
     return true;
@@ -215,84 +243,63 @@ bool HackRfManager::set_sample_rate( double rate )
     return false;
 }
 
-int HackRfManager::_hackRF_rx_callback(hackrf_transfer* transfer)
-{
-    HackRfManager * obj = (HackRfManager *)transfer->rx_ctx;
-    return obj->hackRF_rx_callback(transfer);
-}
+//int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
+//{
+//    auto gain = 40;
+//    output = new float[transfer->valid_length * sampleRate * 2];
 
-int HackRfManager::hackRF_rx_callback(hackrf_transfer* transfer)
-{
-//    qDebug() << transfer->valid_length;
+//    deviation = 2.0 * M_PI * 75.0e3 / hackrf_sample;
+//    for (int i = 0; i < transfer->valid_length ; i++) {
 
-    int buffer_size = transfer->valid_length / 2;
-    QVector<double> demodulated_samples(buffer_size);
+//        double	audio_amp = transfer->buffer[i] * gain;
 
-    for (int i = 0; i < transfer->valid_length / 2; i += 2)
-    {
-        // Demodulate the FM signal (frequency demodulation)
-        double real = transfer->buffer[i];
-        double imag = transfer->buffer[i + 1];
+//        if (fabs(audio_amp) > 1.0) {
+//            audio_amp = (audio_amp > 0.0) ? 1.0 : -1.0;
+//        }
+//        fm_phase += fm_deviation * audio_amp;
+//        while (fm_phase > (float)(M_PI))
+//            fm_phase -= (float)(2.0 * M_PI);
+//        while (fm_phase < (float)(-M_PI))
+//            fm_phase += (float)(2.0 * M_PI);
 
-        // Compute the phase angle
-        double phase = atan2(imag, real);
+//        output[i * sampleRate] = (float)sin(fm_phase);
+//        output[i * sampleRate + 1] = (float)cos(fm_phase);
+//    }
 
-        // Calculate frequency deviation (change in phase)
-        double delta_phase = phase - previous_phase;
-        previous_phase = phase;
+//    if (!m_ptt)
+//    {
+//        if (tcpClient)
+//        {
+//            QByteArray soundBuffer(reinterpret_cast<const char*>(output), transfer->valid_length * sampleRate * 2 * sizeof(float));
+//            tcpClient->sendData(soundBuffer);
+//            if (audioOutputThread)
+//            {
+//                audioOutputThread->writeBuffer(soundBuffer);
+//            }
+//        }
+//    }
+//    delete[] output;
+//    return 0;
+//}
 
-        // Perform frequency demodulation to get audio signal
-        double demodulated_fm_sample = (delta_phase / (2.0 * M_PI * sampleRate)) * 1e6; // Convert to Hz
-        demodulated_samples[i / 2] = demodulated_fm_sample;
-    }
+//int HackRfManager::hackRF_tx_callback(hackrf_transfer* transfer)
+//{
+//    qDebug() << "Hackrf tx call back called with: " << transfer->buffer_length << " bytes";
+//    // Example: Generate a sine wave for FM modulation
+//    double frequency = calculateFrequency(currentFrequency, deviation, modulationIndex);
+//    modulationIndex += 0.01; // Increase the modulation index for variation
 
-    if (!m_ptt)
-    {
-        if (tcpClient)
-        {
-            int packetSize = 2048;  // Reduced packet size
-            int numPackets = buffer_size / packetSize;
+//    // FM modulation: Multiply the buffer by a sinusoidal waveform
+//    for (size_t i = 0; i < transfer->buffer_length; ++i) {
+//        double modulation = std::sin(2 * M_PI * frequency * i / sampleRate);
+//        transfer->buffer[i] = static_cast<int16_t>(transfer->buffer[i] * modulation);
+//    }
 
-            for (int i = 0; i < numPackets; ++i)
-            {
-                int offset = i * packetSize;
-                int packetLength = std::min(packetSize, buffer_size - offset);
-                // Use QVector's data() to get a pointer to the array
-                QByteArray soundBuffer(reinterpret_cast<const char*>(demodulated_samples.data()), packetLength);
-//                tcpClient->sendData(soundBuffer);
-                if (audioOutputThread)
-                {
-                    audioOutputThread->writeBuffer(soundBuffer);
-                }
-            }
-        }
-    }
-    return 0; // TODO: return -1 on error/stop
-}
-
-int  HackRfManager::_hackRF_tx_callback(hackrf_transfer *transfer) {
-    HackRfManager *obj = (HackRfManager *)transfer->tx_ctx;
-    return obj->hackRF_tx_callback(transfer);
-}
-
-int HackRfManager::hackRF_tx_callback(hackrf_transfer* transfer)
-{
-    qDebug() << "Hackrf tx call back called with: " << transfer->buffer_length << " bytes";
-    // Example: Generate a sine wave for FM modulation
-    double frequency = calculateFrequency(currentFrequency, deviation, modulationIndex);
-    modulationIndex += 0.01; // Increase the modulation index for variation
-
-    // FM modulation: Multiply the buffer by a sinusoidal waveform
-    for (size_t i = 0; i < transfer->buffer_length; ++i) {
-        double modulation = std::sin(2 * M_PI * frequency * i / sampleRate);
-        transfer->buffer[i] = static_cast<int16_t>(transfer->buffer[i] * modulation);
-    }
-
-    // Transmit the sample
-    hackrf_set_freq(this->_device, frequency);
-    QThread::msleep(10);
-    return 0; // TODO: return -1 on error/stop
-}
+//    // Transmit the sample
+//    hackrf_set_freq(this->_device, frequency);
+//    QThread::msleep(10);
+//    return 0; // TODO: return -1 on error/stop
+//}
 
 void HackRfManager::onInfoReceived(QString info)
 {
@@ -354,7 +361,8 @@ void HackRfManager::onDataReceived(QByteArray data)
             else
             {
                 m_ptt = false;
-                start();
+
+                Open(mRxHandler);
                 StartRx();
                 qDebug() << "Ptt Off";
             }
