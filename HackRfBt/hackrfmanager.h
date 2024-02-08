@@ -4,10 +4,8 @@
 #include <QObject>
 #include <QDebug>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdint.h>
 #include <string.h>
-#include <iostream>
 #include <cmath>
 #include <message.h>
 #include <gattserver.h>

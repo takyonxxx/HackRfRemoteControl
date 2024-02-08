@@ -11,99 +11,22 @@ CONFIG += qwt
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 QMAKE_ASSET_CATALOGS_BUILD_PATH = $$PWD
 
-win32:RC_ICONS += $$\PWD\icons\hackrf.png
-
 SOURCES += \
         audiootputthread.cpp \
-        gattserver.cpp \
-        gui/spectrum.cc \
-        gui/spectrumview.cc \
+        gattserver.cpp \       
         hackrfmanager.cpp \
         main.cpp \
         message.cpp \
-        modulator.cpp \
-        receiver/audiopostproc.cc \
-        receiver/configuration.cc \
-        receiver/demodulator.cc \
-        receiver/receiver.cc \
-        receiver/rtldatasource.cc \
-        receiver/source.cc \
-        sdr/aprs.cc \
-        sdr/ax25.cc \
-        sdr/baudot.cc \
-        sdr/bch31_21.cc \
-        sdr/buffer.cc \
-        sdr/exception.cc \
-        sdr/fsk.cc \
-        sdr/logger.cc \
-        sdr/node.cc \
-        sdr/options.cc \
-        sdr/pocsag.cc \
-        sdr/portaudio.cc \
-        sdr/psk31.cc \
-        sdr/queue.cc \
-        sdr/rtlsource.cc \
-        sdr/sha1.cc \
-        sdr/traits.cc \
-        sdr/utils.cc \
-        sdr/wavfile.cc \
-        sdrmanager.cpp
+        modulator.cpp
 
 HEADERS += \
     IHackRFData.h \
     audiootputthread.h \
-    gattserver.h \   
-    gui/gui.hh \
-    gui/spectrum.hh \
-    gui/spectrumview.hh \
+    gattserver.h \    \
+    gnuradio.h \  
     hackrfmanager.h \
-    modulator.h \   
-    receiver/audiopostproc.hh \
-    receiver/configuration.hh \
-    receiver/demodulator.hh \
-    receiver/receiver.hh \
-    receiver/rtldatasource.hh \
-    receiver/source.hh \
-    message.h \
-    sdr/aprs.hh \
-    sdr/autocast.hh \
-    sdr/ax25.hh \
-    sdr/baseband.hh \
-    sdr/baudot.hh \
-    sdr/bch31_21.hh \
-    sdr/buffer.hh \
-    sdr/buffernode.hh \
-    sdr/combine.hh \
-    sdr/config.hh \
-    sdr/demod.hh \
-    sdr/exception.hh \
-    sdr/fftplan.hh \
-    sdr/fftplan_fftw3.hh \
-    sdr/fftplan_native.hh \
-    sdr/filternode.hh \
-    sdr/firfilter.hh \
-    sdr/freqshift.hh \
-    sdr/fsk.hh \
-    sdr/interpolate.hh \
-    sdr/logger.hh \
-    sdr/math.hh \
-    sdr/node.hh \
-    sdr/operators.hh \
-    sdr/options.hh \
-    sdr/pocsag.hh \
-    sdr/portaudio.hh \
-    sdr/psk31.hh \
-    sdr/queue.hh \
-    sdr/rtlsource.hh \
-    sdr/sdr.hh \
-    sdr/sha1.hh \
-    sdr/siggen.hh \
-    sdr/streamsource.hh \
-    sdr/subsample.hh \
-    sdr/traits.hh \
-    sdr/utils.hh \
-    sdr/wavfile.hh \
-    sdrmanager.h \
+    modulator.h \
+    message.h \   
     tcpclient.h \
     udpclient.h
 
@@ -215,8 +138,31 @@ ios {
     QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
 }
 
+win32 {
+    message("Win32 enabled")
+    # RC_ICONS += $$\PWD\icons\hackrf.png
+
+    INCLUDEPATH += $$PWD\include\libhackrf
+    INCLUDEPATH += $$PWD\include\rtl-sdr
+    # INCLUDEPATH += $$PWD\libs\fftw3-3
+    INCLUDEPATH += $$PWD\libs\portaudio\include
+    # INCLUDEPATH += $$PWD\include\osmosdr
+    # INCLUDEPATH += $$PWD\include\soapysdr
+
+    LIBS += -L$$PWD\libs\rtl-sdr -lrtlsdr
+    LIBS += -L$$PWD\libs\hackrf -lhackrf
+    # LIBS += -L$$PWD\libs\fftw3-3 -llibfftw3-3
+    LIBS += -L$$PWD\libs\portaudio\lib\x64\Release -lportaudio_x64
+    # LIBS += -L$$PWD\libs\osmosdr -losmosdr
+    # LIBS += -L$$PWD\libs\soapysdr -lSoapyOsmoSDR
+
+}
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    icons/hackrf.png

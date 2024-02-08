@@ -1,7 +1,6 @@
 #include <QCoreApplication>
 #include "modulator.h"
 #include "hackrfmanager.h"
-#include "sdrmanager.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,7 +8,6 @@ int main(int argc, char *argv[])
 
 
     HackRfManager hackRfManager;
-    SdrManager sdrManager;
     Modulator *mod = new Modulator();
 
     qDebug() << "Searching Sdr devices...";
@@ -20,14 +18,9 @@ int main(int argc, char *argv[])
              qDebug() << "Could not open Hackrf";
         }
         hackRfManager.StartRx();
-    }
-    else if (rtlsdr_get_device_count() > 0)
-    {
-        qDebug() << "Starting Rtl device.";
-        sdrManager.start();
-    }
+    }   
     else
-         qDebug() << "No Sdr devices found.";
+         qDebug() << "No HackRf devices found.";
 
     return a.exec();
 }
