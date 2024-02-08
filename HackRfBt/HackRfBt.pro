@@ -195,14 +195,17 @@ unix:!macx{
 
     INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include
+    INCLUDEPATH += /usr/local/include
     INCLUDEPATH += /usr/local/lib
-    INCLUDEPATH += /usr/include/libhackrf
-    INCLUDEPATH += /usr/lib/x86_64-linux-gnu
-    INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf
+    INCLUDEPATH += /usr/include/libhackrf   
+    INCLUDEPATH += /lib/x86_64-linux-gnu
 
+    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf
+    LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd
+
+    # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
+    # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
     # LIBS += -L/usr/lib/arm-linux-gnueabihf/ -lhackrf
-    # INCLUDEPATH += /usr/include/libhackrf
     # PRE_TARGETDEPS += /usr/lib/arm-linux-gnueabihf/libhackrf.a
 }
 
