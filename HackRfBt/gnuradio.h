@@ -1,91 +1,49 @@
 #ifndef GNURADIO_H
 #define GNURADIO_H
 
-// #include <gnuradio/top_block.h>
-// #include <gnuradio/osmosdr/source.h>
-// #include <gnuradio/analog/quadrature_demod_cf.h>  // Include the quadrature demodulation block
-// #include <gnuradio/blocks/throttle.h>
+#define GHZ(x) ((uint64_t)(x) * 1000000000)
+#define MHZ(x) ((x) * 1000000)
+#define KHZ(x) ((x) * 1000)
+#define DEFAULT_SAMPLE_RATE             MHZ(8)
+#define DEFAULT_FREQUENCY               MHZ(100)
+#define DEFAULT_AUDIO_SAMPLE_RATE       48000
 
-// class CustomAudioSink : public gr::block
-// {
-// public:
-//     typedef std::shared_ptr<CustomAudioSink> sptr;
+#include <QObject>
+#include <QDebug>
+#include <gnuradio/top_block.h>
+#include <gnuradio/analog/quadrature_demod_cf.h>
+#include <gnuradio/blocks/throttle.h>
+#include <gnuradio/audio/sink.h>
+#include <gnuradio/logger.h>
+#include "osmosdr/source.h"
 
-//     static sptr make(AudioOutputThread* audioOutputThread);
-//     int work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items) override;
+// #include <SoapySDR/Device.hpp>
+// #include <SoapySDR/Formats.hpp>
+// #include <SoapySDR/Errors.hpp>
 
-// private:
-//     AudioOutputThread* audioOutputThread;
-//     QMutex mutex;
+class GnuRadioManager : public QObject
+{
+    Q_OBJECT
+public:
+    explicit GnuRadioManager();
+    ~GnuRadioManager();
 
-//     CustomAudioSink(AudioOutputThread* audioOutputThread);
-// };
+    gr::top_block_sptr getTopBlock() const;
+    gr::analog::quadrature_demod_cf::sptr getFMDemodulator() const;
 
-
-
-// gr::top_block_sptr getTopBlock() const { return tb; }
-// gr::osmosdr::source::sptr getHackRFSource() const { return hackrf_source; }
-// gr::analog::quadrature_demod_cf::sptr getFMDemodulator() const { return fm_demod; }
-// CustomAudioSink::sptr getAudioSink() const { return audio_sink; }
-
-// gr::top_block_sptr tb;
-// gr::osmosdr::source::sptr hackrf_source;
-// gr::analog::quadrature_demod_cf::sptr fm_demod;
-// CustomAudioSink::sptr audio_sink;
-
-
-
-// CustomAudioSink::sptr CustomAudioSink::make(AudioOutputThread* audioOutputThread)
-// {
-//     return gnuradio::get_initial_sptr(new CustomAudioSink(audioOutputThread));
-// }
-
-// int CustomAudioSink::work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items)
-// {
-//     QMutexLocker locker(&mutex);
-
-//     // Get the demodulated audio samples from the input_items vector
-//     const float* in = (const float*)input_items[0];
-
-//     // Convert and send the samples to AudioOutputThread
-//     QByteArray soundBuffer(reinterpret_cast<const char*>(in), noutput_items * sizeof(float));
-//     audioOutputThread->writeBuffer(soundBuffer);
-
-//     // Return the number of output items processed
-//     return noutput_items;
-// }
-
-// CustomAudioSink::CustomAudioSink(AudioOutputThread* audioOutputThread)
-//     : gr::block("CustomAudioSink", gr::io_signature::make(1, 1, sizeof(float)), gr::io_signature::make(0, 0, 0)),
-//     audioOutputThread(audioOutputThread)
-// {
-//     // Additional initialization if needed
-// }
-
-
-// // Create GNU Radio flowgraph
-// tb = gr::make_top_block("fm_demod_flowgraph");
-
-// // Source block for HackRF (replace with your actual HackRF source)
-// hackrf_source = gr::osmosdr::source::make();
-// hackrf_source->set_sample_rate(m_sample_rate);
-// hackrf_source->set_center_freq(currentFrequency);
-// hackrf_source->set_gain(20);  // Set the appropriate gain value
-
-// // FM demodulator block
-// fm_demod = gr::analog::quadrature_demod_cf::make(1.0);  // Set the appropriate gain value
-
-// // Custom Audio Sink block
-// audio_sink = CustomAudioSink::make(audioOutputThread);
-
-// // Throttle block to control sample rate
-// gr::blocks::throttle::sptr throttle = gr::blocks::throttle::make(sizeof(gr_complex), m_sample_rate);
-
-// // Connect the blocks
-// tb->connect(hackrf_source, 0, fm_demod, 0);
-// tb->connect(fm_demod, 0, throttle, 0);
-// tb->connect(throttle, 0, audio_sink, 0);
-
-// tb->run();
+private:
+    gr::top_block_sptr tb;  
+    gr::analog::quadrature_demod_cf::sptr fm_demod;
+    osmosdr::source::sptr hackrf_source;
+    // SoapySDR::Device *hackrf_source;
+    // gr::block_sptr hackrf_source;
+    // SoapySDR::Kwargs args;
+    // args["driver"] = "hackrf";
+    // args["device"] = "0";
+    // hackrf_source = SoapySDR::Device::make(args);
+    // hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, DEFAULT_SAMPLE_RATE);
+    // hackrf_source->setFrequency(SOAPY_SDR_RX, 0, DEFAULT_FREQUENCY);
+    // hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", 20.0); // Adjust the gain parameter as needed
+};
 
 #endif // GNURADIO_H

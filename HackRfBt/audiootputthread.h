@@ -12,12 +12,13 @@
 #include <QAudioOutput>
 #include <QIODevice>
 
+#define DEFAULT_AUDIO_SAMPLE_RATE       48000
 
 class AudioOutputThread: public QObject
 {
     Q_OBJECT
 public:
-    explicit AudioOutputThread(QObject *parent, int sampleFormat);
+    explicit AudioOutputThread(QObject *parent = nullptr, int sampleFormat = DEFAULT_AUDIO_SAMPLE_RATE);
     ~AudioOutputThread();
     void stop();
     void writeBuffer(const QByteArray &buffer);

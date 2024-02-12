@@ -23,18 +23,18 @@ HackRfManager::HackRfManager(QObject *parent) :
     currentDemod    = HackRfManager::DEMOD_WFM;
     currentFreqMod  = FreqMod::MHZ;
 
-    gattServer = GattServer::getInstance();
-    if (gattServer)
-    {
-        qDebug() << "Starting gatt service";
-        QObject::connect(gattServer, &GattServer::connectionState, this, &HackRfManager::onConnectionStatedChanged);
-        QObject::connect(gattServer, &GattServer::dataReceived, this, &HackRfManager::onDataReceived);
-        QObject::connect(gattServer, &GattServer::sendInfo, this, &HackRfManager::onInfoReceived);
-        gattServer->startBleService();
-    }
+    // gattServer = GattServer::getInstance();
+    // if (gattServer)
+    // {
+    //     qDebug() << "Starting gatt service";
+    //     QObject::connect(gattServer, &GattServer::connectionState, this, &HackRfManager::onConnectionStatedChanged);
+    //     QObject::connect(gattServer, &GattServer::dataReceived, this, &HackRfManager::onDataReceived);
+    //     QObject::connect(gattServer, &GattServer::sendInfo, this, &HackRfManager::onInfoReceived);
+    //     gattServer->startBleService();
+    // }
 
-    tcpClient = new TcpClient(this);
-    audioOutputThread = new AudioOutputThread(this, 48000);
+    // tcpClient = new TcpClient(this);
+    // audioOutputThread = new AudioOutputThread(this, 48000);
 }
 
 HackRfManager::~HackRfManager()
@@ -77,6 +77,7 @@ bool HackRfManager::handle_error(int status, const char * format, ...)
         hackrf_exit();
         return false;
     }
+    return true;
 }
 
 bool HackRfManager::Open(IHackRFData *handler)

@@ -13,7 +13,8 @@ QMAKE_ASSET_CATALOGS_BUILD_PATH = $$PWD
 
 SOURCES += \
         audiootputthread.cpp \
-        gattserver.cpp \       
+        gattserver.cpp \
+        gnuradio.cpp \
         hackrfmanager.cpp \
         main.cpp \
         message.cpp \
@@ -22,7 +23,7 @@ SOURCES += \
 HEADERS += \
     IHackRFData.h \
     audiootputthread.h \
-    gattserver.h \    \
+    gattserver.h \
     gnuradio.h \  
     hackrfmanager.h \
     modulator.h \
@@ -80,41 +81,8 @@ unix:!macx{
 #    sudo apt-get install qtmultimedia5-dev
 #    sudo apt-get install hackrf
 #    sudo apt-get install -y libhackrf-dev
-#    nmap -sn 192.168.1.0/24
-
-#    start_hackrf.sh
-#    #!/bin/bash
-#    sudo chown root.root /home/pi/HackRfBt/HackRfBt
-#    sudo chmod 4755 /home/pi/HackRfBt/HackRfBt
-#    cd /home/pi/HackRfBt
-#    sudo ./HackRfBt
-
-#    chmod +x start_hackrf.sh
-
-#    sudo nano /etc/systemd/system/hackrf.service
-
-#    [Unit]
-#    Description=HackRF service
-#    After=multi-user.target
-
-#    [Service]
-#    ExecStartPre=/bin/sleep 10
-#    ExecStart=/bin/bash /home/pi/start_hackrf.sh
-#    WorkingDirectory=/home/pi/HackRfBt
-#    StandardOutput=inherit
-#    StandardError=inherit
-#    Restart=always
-#    User=pi
-
-#    [Install]
-#    WantedBy=multi-user.target
-
-#    sudo chmod 644 /lib/systemd/system/hackrf.service
-#    sudo systemctl daemon-reload
-#    sudo systemctl enable hackrf.service
-#    sudo systemctl start hackrf.service
-#    sudo systemctl status hackrf.service
-#    SoapySDRUtil --probe="driver=hackrf"
+#    sudo apt-get install libosmosdr-dev
+#    sudo apt-get install gnuradio
 
     INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include
@@ -122,9 +90,18 @@ unix:!macx{
     INCLUDEPATH += /usr/local/lib
     INCLUDEPATH += /usr/include/libhackrf   
     INCLUDEPATH += /lib/x86_64-linux-gnu
+    INCLUDEPATH += /usr/include/SoapySDR
 
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf
-    LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd
+    LIBS += -L/usr/local/lib \
+    -lboost_system
+    -lboost_program_options
+    -lboost_thread
+
+    INCLUDEPATH += /usr/include/osmosdr
+    LIBS += -L/usr/lib -losmosdr
+
+    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread
+    LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
     # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
