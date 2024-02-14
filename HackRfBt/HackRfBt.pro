@@ -3,8 +3,7 @@ QT += bluetooth multimedia network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17 cmdline
-
-CONFIG += qwt
+QMAKE_CXXFLAGS += -v
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -37,36 +36,33 @@ macos {
     QMAKE_ASSET_CATALOGS = $$PWD/macos/Assets.xcassets
     QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
 
-    INCLUDEPATH += /usr/local/lib
-    INCLUDEPATH += /opt/local/include 
-    INCLUDEPATH += /usr/local/include
-    INCLUDEPATH += $$PWD/gnuradio
-    INCLUDEPATH += $$PWD/qwt
-
+#    INCLUDEPATH += /usr/local/include
+    INCLUDEPATH += /opt/local/include
     INCLUDEPATH += /opt/homebrew/opt/rtl-sdr/include
     INCLUDEPATH += /opt/homebrew/opt/fftw/include
     INCLUDEPATH += /opt/homebrew/opt/portaudio/include
     INCLUDEPATH += /opt/homebrew/opt/hackrf/include/libhackrf
+    INCLUDEPATH += /opt/homebrew/opt/boost/include
+    INCLUDEPATH += /opt/homebrew/opt/qwt/include
 
-    LIBS += -L/usr/local/lib \
-    -lboost_system
-    -lboost_program_options
-    -lboost_thread
+    LIBS += -L/opt/local/lib \
+        -lgnuradio-analog \
+        -lgnuradio-blocks \
+        -lgnuradio-digital \
+        -lgnuradio-filter \
+        -lgnuradio-fft \
+        -lgnuradio-runtime \
+        -lgnuradio-audio \
+        -lgnuradio-osmosdr \
+        -lgnuradio-uhd
 
-    LIBS += -L/opt/local/lib/libgnuradio-analog.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-blocks.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-digital.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-filter.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-fft.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-runtime.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-audio.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-osmosdr.dylib
-    LIBS += -L/opt/local/lib/libgnuradio-uhd.dylib
+    LIBS += -L/opt/homebrew/opt/rtl-sdr/lib -lrtlsdr \
+        -L/opt/homebrew/opt/fftw/lib -lfftw3 \
+        -L/opt/homebrew/opt/portaudio/lib -lportaudio \
+        -L/opt/homebrew/opt/hackrf/lib -lhackrf \
+        -L/opt/homebrew/opt/boost/lib -lboost_system -lboost_filesystem-mt -lboost_program_options
 
-    LIBS += /opt/homebrew/opt/rtl-sdr/lib/librtlsdr.dylib /opt/homebrew/opt/fftw/lib/libfftw3.dylib /opt/homebrew/opt/portaudio/lib/libportaudio.dylib    
-    LIBS += /opt/homebrew/opt/hackrf/lib/libhackrf.dylib
-
-    LIBS += -L/opt/local/lib/libqwt.dylib
+    LIBS += -L/opt/local/lib/lqwt
 }
 
 unix:!macx{
@@ -91,16 +87,14 @@ unix:!macx{
     INCLUDEPATH += /usr/include/libhackrf   
     INCLUDEPATH += /lib/x86_64-linux-gnu
     INCLUDEPATH += /usr/include/SoapySDR
+    INCLUDEPATH += /usr/include/osmosdr
 
     LIBS += -L/usr/local/lib \
     -lboost_system
     -lboost_program_options
     -lboost_thread
 
-    INCLUDEPATH += /usr/include/osmosdr
-    LIBS += -L/usr/lib -losmosdr
-
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread
+    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread -losmosdr
     LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu

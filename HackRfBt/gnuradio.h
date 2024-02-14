@@ -32,7 +32,7 @@ public:
     gr::analog::quadrature_demod_cf::sptr getFMDemodulator() const;
 
 private:
-    gr::top_block_sptr tb;  
+    gr::top_block_sptr tb;
     gr::analog::quadrature_demod_cf::sptr fm_demod;
     osmosdr::source::sptr hackrf_source;
     // SoapySDR::Device *hackrf_source;

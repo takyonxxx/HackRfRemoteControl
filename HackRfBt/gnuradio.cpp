@@ -2,8 +2,8 @@
 
 GnuRadioManager::GnuRadioManager()
 {
-    gr::logger_ptr logger = gr::logger_get_logger("YourLoggerName");
-    gr::logger_set_level(logger, "INFO");
+//    gr::logger_ptr logger = gr::logger_get_logger("YourLoggerName");
+//    gr::logger_set_level(logger, "INFO");
 
     tb = gr::make_top_block("fm_demod_flowgraph");
 
