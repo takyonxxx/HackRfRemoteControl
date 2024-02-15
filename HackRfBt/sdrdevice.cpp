@@ -19,7 +19,7 @@ SdrDevice::SdrDevice(QObject *parent):
     hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", 20.0); // Adjust the gain parameter as needed
     auto rates = hackrf_source->getSampleRateRange(SOAPY_SDR_RX, 0);
 
-    audioOutput = std::make_unique<AudioOutput>(this, 48000);
+    audioOutput = std::make_unique<AudioOutput>(this);
 
     this->start();
 }
@@ -27,6 +27,46 @@ SdrDevice::SdrDevice(QObject *parent):
 SdrDevice::~SdrDevice()
 {
     delete hackrf_source;
+}
+
+void SdrDevice::setFrequency(double frequency)
+{
+    if (hackrf_source) {
+        hackrf_source->setFrequency(SOAPY_SDR_RX, 0, frequency);
+    }
+}
+
+void SdrDevice::setSampleRate(double sampleRate) {
+    if (hackrf_source) {
+        hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
+    }
+}
+
+void SdrDevice::setGain(double gain) {
+    if (hackrf_source) {
+        hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", gain);
+    }
+}
+
+std::vector<SoapySDR::Range> SdrDevice::getSampleRateRange() const {
+    if (hackrf_source) {
+        return hackrf_source->getSampleRateRange(SOAPY_SDR_RX, 0);
+    }
+    return std::vector<SoapySDR::Range>();
+}
+
+std::vector<double> SdrDevice::listSampleRates() const {
+    std::vector<double> sampleRates;
+    if (hackrf_source) {
+        auto rangeList = getSampleRateRange();
+        for (const auto& range : rangeList) {
+            // You may adjust the step based on your requirements
+            for (double currentRate = range.minimum(); currentRate <= range.maximum(); currentRate *= 2.0) {
+                sampleRates.push_back(currentRate);
+            }
+        }
+    }
+    return sampleRates;
 }
 
 void SdrDevice::run()

@@ -31,7 +31,13 @@ class SdrDevice : public QThread
     Q_OBJECT
 public:
     explicit SdrDevice(QObject *parent = nullptr);
-    ~SdrDevice();   
+    ~SdrDevice();
+
+    void setFrequency(double frequency);
+    void setSampleRate(double sampleRate);
+    void setGain(double gain);
+    std::vector<SoapySDR::Range> getSampleRateRange() const;
+    std::vector<double> listSampleRates() const;
 
 private:   
     SoapySDR::Device *hackrf_source;

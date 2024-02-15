@@ -19,7 +19,8 @@ class AudioOutput: public QObject
 {
     Q_OBJECT
 public:
-    explicit AudioOutput(QObject *parent = nullptr, int sampleFormat = DEFAULT_AUDIO_SAMPLE_RATE,
+    explicit AudioOutput(QObject *parent = nullptr,
+                         int sampleFormat = DEFAULT_AUDIO_SAMPLE_RATE,
                          int channelCount = DEFAULT_CHANNEL_COUNT);
     ~AudioOutput();
     void stop();
