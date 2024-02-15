@@ -1,8 +1,8 @@
-#include "audiootputthread.h"
+#include "audiootput.h"
 #include <QDebug>
 #include <QBuffer>
 
-AudioOutputThread::AudioOutputThread(QObject *parent, int sampleFormat):
+AudioOutput::AudioOutput(QObject *parent, int sampleFormat, int channelCount):
     QObject(parent)
 {
     QAudioDevice outputDevice;
@@ -19,33 +19,34 @@ AudioOutputThread::AudioOutputThread(QObject *parent, int sampleFormat):
 
     m_format.setSampleFormat(QAudioFormat::Int16);
     m_format.setSampleRate(sampleFormat);
-    m_format.setChannelCount(1);
+    m_format.setChannelCount(channelCount);
 
     m_audioOutput.reset(new QAudioSink(outputDevice, m_format));
     io = m_audioOutput->start();
     queue = new QQueue<QByteArray>();
-    qDebug() << "Default Sound Device: " << outputDevice.description();
+
+    qDebug() << "Default Sound Device: " << outputDevice.description() << sampleFormat << channelCount;
 }
 
-AudioOutputThread::~AudioOutputThread()
+AudioOutput::~AudioOutput()
 {
     delete queue;
     delete mutex;
 }
 
-void AudioOutputThread::handleAudioOutputStateChanged(QAudio::State newState)
+void AudioOutput::handleAudioOutputStateChanged(QAudio::State newState)
 {
     if (newState == QAudio::StoppedState) {
     } else if (newState == QAudio::ActiveState) {
     }
 }
 
-void AudioOutputThread::stop()
+void AudioOutput::stop()
 {
     m_abort = true;
 }
 
-void AudioOutputThread::writeBuffer(const QByteArray &buffer)
+void AudioOutput::writeBuffer(const QByteArray &buffer)
 {   
     QMutexLocker locker(mutex);
     if (!m_abort)
@@ -54,16 +55,7 @@ void AudioOutputThread::writeBuffer(const QByteArray &buffer)
     }
 }
 
-//const int sampleRate = 22050;
-//const int frequency = 440;  // Frequency of the sine wave (in Hz)
-//const int duration = 1;
-//QByteArray soundBuffer;
-//const int bufferSize = sampleRate * duration * sizeof(short);
-//soundBuffer.resize(bufferSize);
-//generateSineWave(reinterpret_cast<short*>(soundBuffer.data()), bufferSize, sampleRate, frequency);
-//io->write(soundBuffer.data(), soundBuffer.size());
-
-void AudioOutputThread::generateSineWave(short *buffer, int bufferSize, int sampleRate, int frequency)
+void AudioOutput::generateSineWave(short *buffer, int bufferSize, int sampleRate, int frequency)
 {
     const double twoPi = 2.0 * 3.141592653589793238462643383279502884197169399375105820974944;
 

@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <mutex>
 #include "IHackRFData.h"
-#include <audiootputthread.h>
+#include <audiootput.h>
 
 #define BUF_NUM  256
 #define BYTES_PER_SAMPLE  2
@@ -23,8 +23,8 @@
 class Modulator:public IHackRFData
 {
 
-private:    
-    AudioOutputThread *audioOutputThread{};
+private:
+    AudioOutput *audioOutputThread{};
     std::mutex m_mutex;   
     uint32_t m_sample_rate;
     size_t m_sample_count;

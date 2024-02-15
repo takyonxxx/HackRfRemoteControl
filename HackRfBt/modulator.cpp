@@ -3,7 +3,7 @@
 Modulator::Modulator()
 {
     m_sample_count = SAMPLE_COUNT;
-    audioOutputThread = new AudioOutputThread();
+    audioOutputThread = new AudioOutput();
 }
 
 Modulator::~Modulator()

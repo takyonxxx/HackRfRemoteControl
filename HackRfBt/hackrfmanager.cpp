@@ -47,9 +47,9 @@ HackRfManager::~HackRfManager()
         HANDLE_ERROR("Error closing hackrf: %%s\n");
         _device = nullptr;
     }
-
-    if (audioOutputThread) {
-        delete audioOutputThread;
+    
+    if (audioOutput) {
+        delete audioOutput;
     }
 }
 

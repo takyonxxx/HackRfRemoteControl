@@ -1,12 +1,12 @@
 #include <QCoreApplication>
-#include "gnuradio.h"
+#include "sdrdevice.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-
-
-    auto gnr = new GnuRadioManager();
+    
+    
+    auto sdr_device = new SdrDevice();
 
     // HackRfManager hackRfManager;
     //  Modulator *mod = new Modulator();

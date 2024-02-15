@@ -13,13 +13,15 @@
 #include <QIODevice>
 
 #define DEFAULT_AUDIO_SAMPLE_RATE       48000
+#define DEFAULT_CHANNEL_COUNT           1
 
-class AudioOutputThread: public QObject
+class AudioOutput: public QObject
 {
     Q_OBJECT
 public:
-    explicit AudioOutputThread(QObject *parent = nullptr, int sampleFormat = DEFAULT_AUDIO_SAMPLE_RATE);
-    ~AudioOutputThread();
+    explicit AudioOutput(QObject *parent = nullptr, int sampleFormat = DEFAULT_AUDIO_SAMPLE_RATE,
+                         int channelCount = DEFAULT_CHANNEL_COUNT);
+    ~AudioOutput();
     void stop();
     void writeBuffer(const QByteArray &buffer);
 

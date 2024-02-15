@@ -9,7 +9,7 @@
 #include <cmath>
 #include <message.h>
 #include <gattserver.h>
-#include <audiootputthread.h>
+#include <audiootput.h>
 #include "hackrf.h"
 #include "IHackRFData.h"
 #include "tcpclient.h"
@@ -115,7 +115,7 @@ private:
     IHackRFData *mRxHandler;
     IHackRFData *mTxHandler;
     GattServer *gattServer{};
-    AudioOutputThread *audioOutputThread{};
+    AudioOutput *audioOutput{};
     Message message;
 
     bool m_is_initialized;
