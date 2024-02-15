@@ -88,6 +88,7 @@ unix:!macx{
 #    sudo apt-get install hackrf
 #    sudo apt-get install -y libhackrf-dev
 #    sudo apt-get install libosmosdr-dev
+#    sudo apt-get install gr-osmosdr
 #    sudo apt-get install gnuradio
 
     INCLUDEPATH += /usr/lib

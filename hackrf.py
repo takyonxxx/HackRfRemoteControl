@@ -75,7 +75,7 @@ class hackrf(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 10e6
+        self.samp_rate = samp_rate = 8e6
         self.freq = freq = 100e6
         self.channel_freq = channel_freq = 99.7e6
         self.audio_gain = audio_gain = 0.2

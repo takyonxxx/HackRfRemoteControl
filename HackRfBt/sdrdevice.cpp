@@ -2,130 +2,92 @@
 SdrDevice::SdrDevice(QObject *parent):
     QThread(parent)
 {
-    SoapySDR::Kwargs args;
-    args["driver"] = "hackrf";
-    args["device"] = "0";
+    // SoapySDR::Kwargs args;
+    // args["driver"] = "hackrf";
+    // args["device"] = "0";
 
-    hackrf_source = SoapySDR::Device::make(args);
-
-    if (!hackrf_source) {
-        // Handle initialization failure
-        std::cerr << "Failed to initialize HackRF source." << std::endl;
-        return;
-    }
-
-    hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, DEFAULT_SAMPLE_RATE);
-    hackrf_source->setFrequency(SOAPY_SDR_RX, 0, DEFAULT_FREQUENCY);
-    hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", 20.0); // Adjust the gain parameter as needed
-    auto rates = hackrf_source->getSampleRateRange(SOAPY_SDR_RX, 0);
-
-    audioOutput = std::make_unique<AudioOutput>(this);
-
-    this->start();
+    // hackrf_source = SoapySDR::Device::make(args);
+    // hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, DEFAULT_SAMPLE_RATE);
+    // hackrf_source->setFrequency(SOAPY_SDR_RX, 0, DEFAULT_FREQUENCY);
+    // hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", 20.0); // Adjust the gain parameter as needed
+    // auto rates = hackrf_source->getSampleRateRange(SOAPY_SDR_RX, 0);
 }
 
 SdrDevice::~SdrDevice()
-{
-    delete hackrf_source;
+{       
 }
 
 void SdrDevice::setFrequency(double frequency)
 {
     if (hackrf_source) {
-        hackrf_source->setFrequency(SOAPY_SDR_RX, 0, frequency);
+        // hackrf_source->setFrequency(SOAPY_SDR_RX, 0, frequency);
+        hackrf_source->set_center_freq(frequency);
     }
+}
+
+double SdrDevice::getCenterFrequency() const
+{
+    if (hackrf_source)
+    {
+        return hackrf_source->get_center_freq();
+    }
+    return 0;
 }
 
 void SdrDevice::setSampleRate(double sampleRate) {
     if (hackrf_source) {
-        hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
+        // hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
+        hackrf_source->set_sample_rate(sampleRate);
     }
 }
 
 void SdrDevice::setGain(double gain) {
     if (hackrf_source) {
-        hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", gain);
+        // hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", gain);
+        hackrf_source->set_gain(gain);
     }
-}
-
-std::vector<SoapySDR::Range> SdrDevice::getSampleRateRange() const {
-    if (hackrf_source) {
-        return hackrf_source->getSampleRateRange(SOAPY_SDR_RX, 0);
-    }
-    return std::vector<SoapySDR::Range>();
-}
-
-std::vector<double> SdrDevice::listSampleRates() const {
-    std::vector<double> sampleRates;
-    if (hackrf_source) {
-        auto rangeList = getSampleRateRange();
-        for (const auto& range : rangeList) {
-            // You may adjust the step based on your requirements
-            for (double currentRate = range.minimum(); currentRate <= range.maximum(); currentRate *= 2.0) {
-                sampleRates.push_back(currentRate);
-            }
-        }
-    }
-    return sampleRates;
 }
 
 void SdrDevice::run()
 {
-    try {
+    hackrf_source = osmosdr::source::make("hackrf=0");
+    hackrf_source->set_sample_rate(DEFAULT_SAMPLE_RATE);
+    hackrf_source->set_center_freq(DEFAULT_FREQUENCY);
+    // hackrf_source->set_gain_mode(true);
+    hackrf_source->set_gain(14.0, 0);
+    hackrf_source->set_gain(40.0, "IF", 0);
+    hackrf_source->set_gain(40.0, "BB", 0);
 
-        SoapySDR::Stream *rxStream = hackrf_source->setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32);
-        hackrf_source->activateStream(rxStream, 0, 0, 0);
+    std::cout << "Center Frequency: " << hackrf_source->get_center_freq(0) << " Hz\n";
+    std::cout << "Sample Rate: " << hackrf_source->get_sample_rate() << " Hz\n";
+    std::cout << "Actual Bandwidth: " << hackrf_source->get_bandwidth(0) << " [Hz]...\n";
+    std::cout << "Actual RX Gain: " << hackrf_source->get_gain() << " dB...\n";
+    std::cout << "IF Gain: " << hackrf_source->get_gain("IF", 0) << " dB\n";
+    std::cout << "BB Gain: " << hackrf_source->get_gain("BB", 0) << " dB\n";
+    std::cout << "RX Antenna: " << hackrf_source->get_antenna(0) << '\n';
 
-        // Create buffer for storing samples
-        const size_t numSamples = 1024; // Adjust as needed
-        std::vector<std::complex<int16_t>> buffer(numSamples);
+    tb = gr::make_top_block("HackRfBlock");
+    // Create FM demodulation block
+    gr::analog::quadrature_demod_cf::sptr fm_demod = gr::analog::quadrature_demod_cf::make(1.0);
+    gr::blocks::throttle::sptr throttle = gr::blocks::throttle::make(4, DEFAULT_SAMPLE_RATE);
 
-        // Read samples from the stream
-        int flags = 0; // Adjust flags as needed
-        long long timeNs; // Time in nanoseconds, you can ignore it for now
+    // dec 50
+    // gain 1
+    // samplerate 8M
+    // Cutoff freq: 75K
+    // Transition Width: 25K
+    // Hamming
+    // beta 6.76
 
-        while (true)
-        {
-            size_t numBytesRead = hackrf_source->readStream(rxStream, reinterpret_cast<void **>(buffer.data()), numSamples, flags, timeNs);
-            if (numBytesRead == 0) {
-                continue;
-            }
-            // FM demodulation using a simple phase-locked loop (PLL)
-            std::vector<float> audioBuffer(numSamples);
-            float phase = 0.0;
-            for (size_t i = 0; i < numSamples; ++i)
-            {
-                // Compute phase difference
-                float phaseDiff = std::arg(buffer[i]);
+       // Create audio sink block
+    gr::audio::sink::sptr audio_sink = gr::audio::sink::make(DEFAULT_AUDIO_SAMPLE_RATE, "", true);
 
-                // Adjust phase to keep it within [-pi, pi]
-                while (phaseDiff < -M_PI)
-                    phaseDiff += 2 * M_PI;
-                while (phaseDiff > M_PI)
-                    phaseDiff -= 2 * M_PI;
+    tb->connect(hackrf_source, 0, fm_demod, 0);
+    tb->connect(fm_demod, 0, throttle, 0);
+    tb->connect(throttle, 0, audio_sink, 0);
 
-                // Update phase using the phase difference
-                phase += phaseDiff;
-
-                // Perform FM demodulation
-                audioBuffer[i] = phase * (DEFAULT_SAMPLE_RATE / (2.0 * M_PI));
-            }
-
-            // Convert float audio samples to QByteArray
-            QByteArray audioData(reinterpret_cast<const char*>(audioBuffer.data()), audioBuffer.size() * sizeof(float));
-            audioOutput->writeBuffer(audioData);
-
-            QThread::msleep(10);
-        }
-
-        // Deactivate the stream when done
-        hackrf_source->deactivateStream(rxStream, 0, 0);
-        hackrf_source->closeStream(rxStream);
-
-        // Cleanup
-        SoapySDR::Device::unmake(hackrf_source);
-    } catch (const std::exception& e) {
-        // Handle exceptions and log error message
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
+    auto currentFrequency = getCenterFrequency();
+    qDebug() << currentFrequency / 1000000.0;
+    tb->run();
+    tb->wait();
 }

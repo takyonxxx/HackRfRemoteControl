@@ -71,7 +71,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [424, 12.0]
+    coordinate: [424, 12]
     rotation: 0
     state: true
 - name: freq
@@ -90,7 +90,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 10e6
+    value: 8e6
   states:
     bus_sink: false
     bus_source: false
@@ -117,7 +117,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [738, 161]
+    coordinate: [785, 311]
     rotation: 0
     state: true
 - name: analog_sig_source_x_0
@@ -139,7 +139,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [56, 324.0]
+    coordinate: [49, 591]
     rotation: 0
     state: true
 - name: audio_sink_0
@@ -156,7 +156,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [961, 342]
+    coordinate: [1202, 211]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -174,7 +174,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [858, 463]
+    coordinate: [984, 210]
     rotation: 0
     state: true
 - name: blocks_multiply_xx_0
@@ -573,7 +573,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [58, 95]
+    coordinate: [43, 180]
     rotation: 0
     state: true
 - name: qtgui_freq_sink_x_0

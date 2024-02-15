@@ -50,7 +50,7 @@ void AudioOutput::writeBuffer(const QByteArray &buffer)
 {   
     QMutexLocker locker(mutex);
     if (!m_abort)
-    {       
+    {
         io->write(buffer.data(), buffer.size());
     }
 }

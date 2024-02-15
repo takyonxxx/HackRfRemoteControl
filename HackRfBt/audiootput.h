@@ -12,7 +12,7 @@
 #include <QAudioOutput>
 #include <QIODevice>
 
-#define DEFAULT_AUDIO_SAMPLE_RATE       48000
+#define DEFAULT_AUDIO_SAMPLE_RATE       44100
 #define DEFAULT_CHANNEL_COUNT           1
 
 class AudioOutput: public QObject
