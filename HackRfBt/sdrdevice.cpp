@@ -55,13 +55,13 @@ void SdrDevice::run()
     double samp_rate = 8e6;
     double freq = 100e6;
     double channel_freq = 99.7e6;
-    double audio_gain = 0.2;
+    double audio_gain = 1.0;
 
     hackrf_source = osmosdr::source::make("hackrf=0");
 
     hackrf_source->set_time_unknown_pps(osmosdr::time_spec_t());
-    hackrf_source->set_sample_rate(DEFAULT_SAMPLE_RATE);
-    hackrf_source->set_center_freq(DEFAULT_FREQUENCY, 0);
+    hackrf_source->set_sample_rate(samp_rate);
+    hackrf_source->set_center_freq(freq, 0);
     hackrf_source->set_freq_corr(0, 0);
     hackrf_source->set_gain(10, 0);
     hackrf_source->set_if_gain(40, 0);
@@ -77,89 +77,37 @@ void SdrDevice::run()
     std::cout << "BB Gain: " << hackrf_source->get_gain("BB", 0) << " dB\n";
     std::cout << "RX Antenna: " << hackrf_source->get_antenna(0) << '\n';
 
-    // Blocks
-    gr::filter::rational_resampler_ccc_sptr rational_resampler_xxx_0 =
-        gr::filter::rational_resampler_ccc::make(12, 5, std::vector<float>(), 0.0);
+    gr::top_block_sptr tb = gr::make_top_block("FM Receiver");
 
-//    gr::filter::fir_filter_ccf_sptr low_pass_filter_0 =
-//        gr::filter::fir_filter_ccf::make(50, gr::firdes::low_pass(1, 8000000, 75e3, 25000, gr::filter::window::WIN_HAMMING, 6.76));
+    // Create the low-pass filter
+    auto low_pass_filter = gr::filter::fir_filter_ccf::make(
+        50,
+        gr::filter::firdes::low_pass(1, samp_rate, 75e3, 25000, gr::filter::firdes::WIN_HAMMING, 6.76));
+    auto filter_taps = low_pass_filter->taps();
 
-    auto  low_pass_filter_0 = gr::filter::firdes::low_pass(1, DEFAULT_SAMPLE_RATE, 75e3, 25000, gr::fft::window::WIN_HAMMING, 6.76);
-    gr::filter::kernel::fir_filter_fff low_pass_filter(low_pass_filter_0);
+    // Convert the filter_taps to gr_complex for rational_resampler_base_ccc
+    std::vector<gr_complex> complex_taps(filter_taps.size(), gr_complex(0.0, 0.0));
+    for (size_t i = 0; i < filter_taps.size(); ++i) {
+        complex_taps[i] = gr_complex(filter_taps[i], 0.0);
+    }
 
-    gr::blocks::multiply_cc::sptr blocks_multiply_xx_0 = gr::blocks::multiply_cc::make(0.2);
+    // Create the rational resampler with the obtained filter taps
+    auto rational_resampler = gr::filter::rational_resampler_base_ccc::make(12, 5, complex_taps);
 
-    gr::audio::sink::sptr audio_sink = gr::audio::sink::make(DEFAULT_AUDIO_SAMPLE_RATE, "", true);
-
-    gr::analog::sig_source_c::sptr analog_sig_source_x_0 = gr::analog::sig_source_c::make(
-        DEFAULT_SAMPLE_RATE, gr::analog::GR_COS_WAVE, DEFAULT_FREQUENCY - channel_freq, 1, 0, 0
-        );
-
+    auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
+    auto audio_sink = gr::audio::sink::make(44100, "", true);
+    auto sig_source = gr::analog::sig_source_c::make(samp_rate, gr::analog::GR_COS_WAVE, channel_freq, 1, 0, 0);
     gr::analog::quadrature_demod_cf::sptr fm_demod = gr::analog::quadrature_demod_cf::make(1.0);
 
-    // Connections
-    tb->connect(fm_demod, 0, blocks_multiply_xx_0, 0);
-    tb->connect(analog_sig_source_x_0, 0, low_pass_filter, 0);
-    tb->connect(blocks_multiply_xx_0, 0, audio_sink, 0);
-//    tb->connect(low_pass_filter_0, 0, rational_resampler_xxx_0, 0);
-//    tb->connect(rational_resampler_xxx_0, 0, analog_fm_demod_cf_0, 0);
+    tb->connect(fm_demod, 0, multiply_const, 0);
+    tb->connect(sig_source, 0, low_pass_filter, 0);
+    tb->connect(multiply_const, 0, audio_sink, 0);
+    tb->connect(low_pass_filter, 0, rational_resampler, 0);
+    tb->connect(rational_resampler, 0, fm_demod, 0);
+
+    auto currentFrequency = getCenterFrequency();
+    qDebug() << currentFrequency / 1000000.0 << " MHz";
 
     tb->run();
     tb->wait();
-
-//    gr::top_block_sptr tb = gr::make_top_block("FM Receiver");
-
-//    // Blocks
-//    gr::filter::rational_resampler_ccc_sptr rational_resampler_xxx_0 =
-//        gr::filter::rational_resampler_ccc::make(12, 5, std::vector<float>(), 0.0);
-
-//    gr::filter::fir_filter_ccf_sptr low_pass_filter_0 =
-//        gr::filter::fir_filter_ccf::make(50, gr::firdes::low_pass(1, 8000000, 75e3, 25000, gr::filter::window::WIN_HAMMING, 6.76));
-
-//    gr::blocks::multiply_const_ff_sptr blocks_multiply_const_vxx_0 =
-//        gr::blocks::multiply_const_ff::make(0.2);
-
-//    gr::audio::sink_sptr audio_sink_0 =
-//        gr::audio::sink::make(48000, "");
-
-//    gr::analog::sig_source_c_sptr analog_sig_source_x_0 =
-//        gr::analog::sig_source_c::make(8000000, gr::analog::GR_COS_WAVE, 100000000, 1, 0, 0);
-
-//    gr::analog::fm_demod_cf_sptr analog_fm_demod_cf_0 =
-//        gr::analog::fm_demod_cf::make(480e3, 10, 75000, 15000, 16000, 1.0, 75e-6);
-
-//    // Connections
-//    tb->connect(analog_fm_demod_cf_0, 0, blocks_multiply_const_vxx_0, 0);
-//    tb->connect(analog_sig_source_x_0, 0, low_pass_filter_0, 0);
-//    tb->connect(blocks_multiply_const_vxx_0, 0, audio_sink_0, 0);
-//    tb->connect(low_pass_filter_0, 0, rational_resampler_xxx_0, 0);
-//    tb->connect(rational_resampler_xxx_0, 0, analog_fm_demod_cf_0, 0);
-
-//    // Start the flowgraph
-//    tb->run();
-
-//    tb = gr::make_top_block("HackRfBlock");
-//    // Create FM demodulation block
-//    gr::analog::quadrature_demod_cf::sptr fm_demod = gr::analog::quadrature_demod_cf::make(1.0);
-//    gr::blocks::throttle::sptr throttle = gr::blocks::throttle::make(4, DEFAULT_SAMPLE_RATE);
-
-//    // dec 50
-//    // gain 1
-//    // samplerate 8M
-//    // Cutoff freq: 75K
-//    // Transition Width: 25K
-//    // Hamming
-//    // beta 6.76
-
-//       // Create audio sink block
-//    gr::audio::sink::sptr audio_sink = gr::audio::sink::make(DEFAULT_AUDIO_SAMPLE_RATE, "", true);
-
-//    tb->connect(hackrf_source, 0, fm_demod, 0);
-//    tb->connect(fm_demod, 0, throttle, 0);
-//    tb->connect(throttle, 0, audio_sink, 0);
-
-//    auto currentFrequency = getCenterFrequency();
-//    qDebug() << currentFrequency / 1000000.0;
-//    tb->run();
-//    tb->wait();
 }

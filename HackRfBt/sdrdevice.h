@@ -14,39 +14,22 @@
 #include <QDebug>
 #include <QThread>
 
-//#include <gnuradio/top_block.h>
-//#include <gnuradio/analog/quadrature_demod_cf.h>
-//#include <gnuradio/blocks/throttle.h>
-//#include <gnuradio/filter/firdes.h>
-//#include <gnuradio/filter/fir_filter.h>
-//#include <gnuradio/audio/sink.h>
-//#include <gnuradio/blocks/multiply.h>
-//#include <gnuradio/blocks/multiply_const.h>
-//#include <gnuradio/blocks/complex_to_mag_squared.h>
-//#include <gnuradio/analog/sig_source.h>
-//#include <gnuradio/blocks/message_strobe.h>
-//#include <gnuradio/logger.h>
-//#include <gnuradio/osmosdr/source.h>
-
 #include <gnuradio/top_block.h>
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/blocks/multiply.h>
 #include <gnuradio/blocks/throttle.h>
-#include <gnuradio/filter/fir_filter.h>
-#include <gnuradio/filter/firdes.h>
-#include <gnuradio/filter/rational_resampler.h>
+#include <gnuradio/filter/rational_resampler_base.h>
 #include <gnuradio/analog/sig_source.h>
 #include <gnuradio/qtgui/freq_sink_c.h>
 #include <gnuradio/audio/sink.h>
-#include <gnuradio/math.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
+#include <gnuradio/filter/fir_filter_blk.h>
+#include <gnuradio/math.h>
 #include <osmosdr/source.h>
 
-#include <SoapySDR/Device.hpp>
-#include <SoapySDR/Formats.hpp>
-#include <SoapySDR/Errors.hpp>
-
-#include <vector>
+// #include <SoapySDR/Device.hpp>
+// #include <SoapySDR/Formats.hpp>
+// #include <SoapySDR/Errors.hpp>
 
 // #include <audiootput.h>
 
@@ -65,6 +48,7 @@ public:
 private:
     // SoapySDR::Device *hackrf_source;
     // AudioOutput* audioOutput{};
+
     gr::top_block_sptr tb;
     gr::analog::quadrature_demod_cf::sptr fm_demod;
     osmosdr::source::sptr hackrf_source;

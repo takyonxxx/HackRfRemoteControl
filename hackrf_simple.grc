@@ -1,7 +1,6 @@
 options:
   parameters:
     author: ''
-    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -28,7 +27,7 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [24, 76.0]
+    coordinate: [24, 76]
     rotation: 0
     state: enabled
 
@@ -52,7 +51,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [592, 168.0]
+    coordinate: [568, 396]
     rotation: 0
     state: true
 - name: analog_sig_source_x_0
@@ -62,20 +61,19 @@ blocks:
     alias: ''
     amp: '1'
     comment: ''
-    freq: '100000000'
+    freq: '99700000'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
     phase: '0'
     samp_rate: '8000000'
-    showports: 'False'
     type: complex
     waveform: analog.GR_COS_WAVE
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [24, 172.0]
+    coordinate: [54, 281]
     rotation: 0
     state: true
 - name: audio_sink_0
@@ -92,7 +90,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 196.0]
+    coordinate: [911, 441]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -110,7 +108,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [760, 196.0]
+    coordinate: [759, 303]
     rotation: 0
     state: true
 - name: low_pass_filter_0
@@ -129,12 +127,12 @@ blocks:
     samp_rate: '8000000'
     type: fir_filter_ccf
     width: '25000'
-    win: window.WIN_HAMMING
+    win: firdes.WIN_HAMMING
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [232, 168.0]
+    coordinate: [231, 450]
     rotation: 0
     state: true
 - name: rational_resampler_xxx_0
@@ -154,7 +152,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [424, 184.0]
+    coordinate: [358, 278]
     rotation: 0
     state: true
 
@@ -167,4 +165,3 @@ connections:
 
 metadata:
   file_format: 1
-  grc_version: 3.10.9.2
