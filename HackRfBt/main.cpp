@@ -10,22 +10,22 @@ int main(int argc, char *argv[])
     auto sdr_device = new SdrDevice();
     sdr_device->start();
 
-    // const double frequencyIncrement = 0.5e6; // 0.1 MHz in Hz
-    // double currentFrequency = DEFAULT_FREQUENCY; // Set your initial frequency here
+    const double frequencyIncrement = 0.5e6; // 0.1 MHz in Hz
+    double currentFrequency = DEFAULT_FREQUENCY; // Set your initial frequency here
 
-    // // Create a timer to handle the frequency change
-    // QTimer frequencyTimer;
+    // Create a timer to handle the frequency change
+    QTimer frequencyTimer;
 
-    // frequencyTimer.start(100);
+    frequencyTimer.start(100);
 
-    // qDebug() << "Timer started";
+    qDebug() << "Timer started";
 
-    // QObject::connect(&frequencyTimer, &QTimer::timeout, [&]() {
-    //     currentFrequency = sdr_device->getCenterFrequency();
-    //     qDebug() << currentFrequency;
-    //     sdr_device->setFrequency(currentFrequency + frequencyIncrement);
-    //     sdr_device->start();
-    // });
+    QObject::connect(&frequencyTimer, &QTimer::timeout, [&]() {
+        currentFrequency = sdr_device->getCenterFrequency();
+        qDebug() << currentFrequency;
+        sdr_device->setFrequency(currentFrequency + frequencyIncrement);
+        sdr_device->start();
+    });
 
     // HackRfManager hackRfManager;
     //  Modulator *mod = new Modulator();
