@@ -1,6 +1,7 @@
 options:
   parameters:
     author: ''
+    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -32,48 +33,6 @@ options:
     state: enabled
 
 blocks:
-- name: audio_gain
-  id: variable_qtgui_range
-  parameters:
-    comment: ''
-    gui_hint: ''
-    label: ''
-    min_len: '200'
-    orient: Qt.Horizontal
-    rangeType: float
-    start: '0'
-    step: '0.05'
-    stop: '1'
-    value: '0.2'
-    widget: counter_slider
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [599, 10]
-    rotation: 0
-    state: true
-- name: channel_freq
-  id: variable_qtgui_range
-  parameters:
-    comment: ''
-    gui_hint: ''
-    label: ''
-    min_len: '200'
-    orient: Qt.Horizontal
-    rangeType: float
-    start: 80e6
-    step: '0.1'
-    stop: 108e6
-    value: 99.7e6
-    widget: counter_slider
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [424, 12.0]
-    rotation: 0
-    state: true
 - name: freq
   id: variable
   parameters:
@@ -117,29 +76,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [738, 464]
-    rotation: 0
-    state: true
-- name: analog_sig_source_x_0
-  id: analog_sig_source_x
-  parameters:
-    affinity: ''
-    alias: ''
-    amp: '1'
-    comment: ''
-    freq: freq-channel_freq
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    phase: '0'
-    samp_rate: samp_rate
-    type: complex
-    waveform: analog.GR_COS_WAVE
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [70, 495]
+    coordinate: [552, 152.0]
     rotation: 0
     state: true
 - name: audio_sink_0
@@ -156,7 +93,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1036, 436]
+    coordinate: [880, 180.0]
     rotation: 0
     state: true
 - name: blocks_multiply_const_vxx_0
@@ -165,7 +102,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: audio_gain
+    const: '0.75'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: float
@@ -174,25 +111,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [993, 578]
-    rotation: 0
-    state: true
-- name: blocks_multiply_xx_0
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [368, 436]
+    coordinate: [728, 180.0]
     rotation: 0
     state: true
 - name: low_pass_filter_0
@@ -211,12 +130,12 @@ blocks:
     samp_rate: samp_rate
     type: fir_filter_ccf
     width: '25000'
-    win: firdes.WIN_HAMMING
+    win: window.WIN_HAMMING
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [446, 652]
+    coordinate: [184, 168.0]
     rotation: 0
     state: true
 - name: osmosdr_source_0
@@ -573,7 +492,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [66, 226]
+    coordinate: [40, 200.0]
     rotation: 0
     state: true
 - name: rational_resampler_xxx_0
@@ -593,18 +512,16 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [568, 344.0]
+    coordinate: [376, 192.0]
     rotation: 0
     state: true
 
 connections:
 - [analog_fm_demod_cf_0, '0', blocks_multiply_const_vxx_0, '0']
-- [analog_sig_source_x_0, '0', blocks_multiply_xx_0, '1']
 - [blocks_multiply_const_vxx_0, '0', audio_sink_0, '0']
-- [blocks_multiply_xx_0, '0', low_pass_filter_0, '0']
 - [low_pass_filter_0, '0', rational_resampler_xxx_0, '0']
-- [osmosdr_source_0, '0', blocks_multiply_xx_0, '0']
 - [rational_resampler_xxx_0, '0', analog_fm_demod_cf_0, '0']
 
 metadata:
   file_format: 1
+  grc_version: 3.10.9.2

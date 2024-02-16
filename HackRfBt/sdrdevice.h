@@ -23,13 +23,14 @@
 #include <gnuradio/qtgui/freq_sink_c.h>
 #include <gnuradio/audio/sink.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
+#include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/math.h>
 #include <osmosdr/source.h>
 
-// #include <SoapySDR/Device.hpp>
-// #include <SoapySDR/Formats.hpp>
-// #include <SoapySDR/Errors.hpp>
+ #include <SoapySDR/Device.hpp>
+ #include <SoapySDR/Formats.hpp>
+ #include <SoapySDR/Errors.hpp>
 
 // #include <audiootput.h>
 
@@ -58,3 +59,11 @@ protected:
 };
 
 #endif // SDRDEVICE_H
+
+//    auto filter_taps = low_pass_filter->taps();
+// Convert the filter_taps to gr_complex for rational_resampler_base_ccc
+//    std::vector<gr_complex> complex_taps(filter_taps.size(), gr_complex(0.0, 0.0));
+//    for (size_t i = 0; i < filter_taps.size(); ++i) {
+//        complex_taps[i] = gr_complex(filter_taps[i], 0.0);
+//    }
+//    auto rational_resampler = gr::filter::rational_resampler_base_ccc::make(12, 5, complex_taps);
