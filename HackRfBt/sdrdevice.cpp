@@ -2,15 +2,7 @@
 SdrDevice::SdrDevice(QObject *parent):
     QThread(parent)
 {
-    // SoapySDR::Kwargs args;
-    // args["driver"] = "hackrf";
-    // args["device"] = "0";
 
-    // hackrf_source = SoapySDR::Device::make(args);
-    // hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, DEFAULT_SAMPLE_RATE);
-    // hackrf_source->setFrequency(SOAPY_SDR_RX, 0, DEFAULT_FREQUENCY);
-    // hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", 20.0); // Adjust the gain parameter as needed
-    // auto rates = hackrf_source->getSampleRateRange(SOAPY_SDR_RX, 0);
 }
 
 SdrDevice::~SdrDevice()
@@ -20,7 +12,7 @@ SdrDevice::~SdrDevice()
 void SdrDevice::setFrequency(double frequency)
 {
     if (hackrf_source) {
-        // hackrf_source->setFrequency(SOAPY_SDR_RX, 0, frequency);
+//        hackrf_source->setFrequency(SOAPY_SDR_RX, 0, frequency);
         hackrf_source->set_center_freq(frequency);
     }
 }
@@ -30,20 +22,21 @@ double SdrDevice::getCenterFrequency() const
     if (hackrf_source)
     {
         return hackrf_source->get_center_freq();
+//        return hackrf_source->getFrequency(SOAPY_SDR_RX, 0);
     }
     return 0;
 }
 
 void SdrDevice::setSampleRate(double sampleRate) {
     if (hackrf_source) {
-        // hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
+//         hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
         hackrf_source->set_sample_rate(sampleRate);
     }
 }
 
 void SdrDevice::setGain(double gain) {
     if (hackrf_source) {
-        // hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", gain);
+//         hackrf_source->setGain(SOAPY_SDR_RX, 0, "IF", gain);
         hackrf_source->set_gain(gain);
     }
 }
@@ -60,7 +53,7 @@ void SdrDevice::run()
 //    args["driver"] = "hackrf";
 //    args["device"] = "0";
 
-//    auto hackrf_source = SoapySDR::Device::make(args);
+//    hackrf_source = SoapySDR::Device::make(args);
 //    hackrf_source->setSampleRate(SOAPY_SDR_RX, 0, DEFAULT_SAMPLE_RATE);
 //    hackrf_source->setFrequency(SOAPY_SDR_RX, 0, DEFAULT_FREQUENCY);
 //    hackrf_source->setGain(SOAPY_SDR_RX, 0, "AMP", false);
@@ -88,6 +81,9 @@ void SdrDevice::run()
     std::cout << "RX Antenna: " << hackrf_source->get_antenna(0) << '\n';
 
     gr::top_block_sptr tb = gr::make_top_block("FM Receiver");
+
+//    gr::filter::rational_resampler_ccc::sptr rational_resampler = gr::filter::rational_resampler_ccc::make(
+//        12, 5, {});
 
     gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(
         12, 5, {});

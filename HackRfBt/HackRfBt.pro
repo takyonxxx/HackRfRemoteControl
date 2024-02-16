@@ -57,11 +57,10 @@ macos {
         -lgnuradio-fft \
         -lgnuradio-runtime \
         -lgnuradio-audio \
-        -lgnuradio-osmosdr \
+#        -lgnuradio-osmosdr \
         -lgnuradio-uhd
 
     LIBS += -L/opt/homebrew/Cellar/soapysdr/0.8.1_1/lib -lSoapySDR
-
 
     LIBS += -L/opt/homebrew/Cellar/boost//1.84.0/lib -lboost_system -lboost_filesystem-mt -lboost_program_options
 

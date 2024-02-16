@@ -19,6 +19,7 @@
 #include <gnuradio/blocks/multiply.h>
 #include <gnuradio/blocks/throttle.h>
 #include <gnuradio/filter/rational_resampler_base.h>
+//#include <gnuradio/filter/rational_resampler.h>
 #include <gnuradio/analog/sig_source.h>
 #include <gnuradio/qtgui/freq_sink_c.h>
 #include <gnuradio/audio/sink.h>
@@ -47,12 +48,12 @@ public:
     void setGain(double gain);
 
 private:
-    // SoapySDR::Device *hackrf_source;
+       osmosdr::source::sptr hackrf_source;
+//     SoapySDR::Device *hackrf_source;
     // AudioOutput* audioOutput{};
 
     gr::top_block_sptr tb;
     gr::analog::quadrature_demod_cf::sptr fm_demod;
-    osmosdr::source::sptr hackrf_source;
     bool m_stop;
 protected:
     void run() override;
