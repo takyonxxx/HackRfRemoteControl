@@ -107,6 +107,37 @@ void SdrDevice::run()
     tb->run();
     tb->wait();
 
+//    gr::top_block_sptr tb = gr::make_top_block("FM Receiver");
+
+//    // Blocks
+//    gr::filter::rational_resampler_ccc_sptr rational_resampler_xxx_0 =
+//        gr::filter::rational_resampler_ccc::make(12, 5, std::vector<float>(), 0.0);
+
+//    gr::filter::fir_filter_ccf_sptr low_pass_filter_0 =
+//        gr::filter::fir_filter_ccf::make(50, gr::firdes::low_pass(1, 8000000, 75e3, 25000, gr::filter::window::WIN_HAMMING, 6.76));
+
+//    gr::blocks::multiply_const_ff_sptr blocks_multiply_const_vxx_0 =
+//        gr::blocks::multiply_const_ff::make(0.2);
+
+//    gr::audio::sink_sptr audio_sink_0 =
+//        gr::audio::sink::make(48000, "");
+
+//    gr::analog::sig_source_c_sptr analog_sig_source_x_0 =
+//        gr::analog::sig_source_c::make(8000000, gr::analog::GR_COS_WAVE, 100000000, 1, 0, 0);
+
+//    gr::analog::fm_demod_cf_sptr analog_fm_demod_cf_0 =
+//        gr::analog::fm_demod_cf::make(480e3, 10, 75000, 15000, 16000, 1.0, 75e-6);
+
+//    // Connections
+//    tb->connect(analog_fm_demod_cf_0, 0, blocks_multiply_const_vxx_0, 0);
+//    tb->connect(analog_sig_source_x_0, 0, low_pass_filter_0, 0);
+//    tb->connect(blocks_multiply_const_vxx_0, 0, audio_sink_0, 0);
+//    tb->connect(low_pass_filter_0, 0, rational_resampler_xxx_0, 0);
+//    tb->connect(rational_resampler_xxx_0, 0, analog_fm_demod_cf_0, 0);
+
+//    // Start the flowgraph
+//    tb->run();
+
 //    tb = gr::make_top_block("HackRfBlock");
 //    // Create FM demodulation block
 //    gr::analog::quadrature_demod_cf::sptr fm_demod = gr::analog::quadrature_demod_cf::make(1.0);
