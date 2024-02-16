@@ -57,7 +57,7 @@ macos {
         -lgnuradio-fft \
         -lgnuradio-runtime \
         -lgnuradio-audio \
-    #    -lgnuradio-osmosdr \
+        -lgnuradio-osmosdr \
         -lgnuradio-uhd
 
     LIBS += -L/opt/homebrew/Cellar/soapysdr/0.8.1_1/lib -lSoapySDR
@@ -72,7 +72,7 @@ macos {
         -L/opt/homebrew/Cellar/hackrf/2023.01.1/lib -lhackrf
 
     INCLUDEPATH += /opt/local/include
-    LIBS += -L/opt/local/lib/lqwt
+    LIBS += -L/opt/local/lib -lqwt
 }
 
 unix:!macx{
