@@ -34,27 +34,45 @@ options:
 
 blocks:
 - name: audio_gain
-  id: variable
+  id: variable_qtgui_range
   parameters:
     comment: ''
+    gui_hint: ''
+    label: Volume
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '0.05'
+    stop: '1'
     value: '0.75'
+    widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 8.0]
+    coordinate: [576, 148.0]
     rotation: 0
     state: enabled
-- name: center_freq
-  id: variable
+- name: channel_freq
+  id: variable_qtgui_range
   parameters:
     comment: ''
+    gui_hint: ''
+    label: Frequency
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: 80e6
+    step: '0.1'
+    stop: 108e6
     value: 100e6
+    widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 8.0]
+    coordinate: [472, 152.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -108,6 +126,87 @@ blocks:
     coordinate: [640, 288.0]
     rotation: 0
     state: true
+- name: freq_sink
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: Spectrum
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '0.1'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'True'
+    fc: channel_freq
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'True'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [304, 160.0]
+    rotation: 0
+    state: enabled
 - name: hackrf_source
   id: soapy_hackrf_source
   parameters:
@@ -115,7 +214,7 @@ blocks:
     alias: ''
     amp: 'False'
     bandwidth: '0'
-    center_freq: center_freq
+    center_freq: channel_freq
     comment: ''
     dev_args: driver=hackrf
     gain: '40'
@@ -196,6 +295,7 @@ blocks:
 
 connections:
 - [fm_demod, '0', multiply_const, '0']
+- [hackrf_source, '0', freq_sink, '0']
 - [hackrf_source, '0', low_pass_filter, '0']
 - [low_pass_filter, '0', rational_resampler, '0']
 - [multiply_const, '0', audio_sink, '0']

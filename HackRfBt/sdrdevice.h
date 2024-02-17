@@ -4,10 +4,14 @@
 #define GHZ(x) ((uint64_t)(x) * 1000000000)
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
-#define DEFAULT_SAMPLE_RATE             MHZ(8)
+#define DEFAULT_SAMPLE_RATE             MHZ(20)
 #define DEFAULT_BANDWITH                KHZ(240)
 #define DEFAULT_FREQUENCY               MHZ(100)
 #define DEFAULT_AUDIO_SAMPLE_RATE       44100
+#define DEFAULT_FREQUENCY               MHZ(100)
+#define DEFAULT_DECIMATION              100
+#define DEFAULT_CUT_OFF                 KHZ(150)
+#define DEFAULT_TRANSLITION             KHZ(100)
 
 #include <QCoreApplication>
 #include <QBuffer>
@@ -27,11 +31,16 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/math.h>
+#include <gnuradio/io_signature.h>
+#include <gnuradio/blocks/null_sink.h>
+#include <gnuradio/soapy/block.h>
+#include <boost/shared_ptr.hpp>
+
 #include <osmosdr/source.h>
 
- #include <SoapySDR/Device.hpp>
- #include <SoapySDR/Formats.hpp>
- #include <SoapySDR/Errors.hpp>
+#include <SoapySDR/Device.hpp>
+#include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Errors.hpp>
 
 // #include <audiootput.h>
 
@@ -48,13 +57,9 @@ public:
     void setGain(double gain);
 
 private:
-       osmosdr::source::sptr hackrf_source;
-//     SoapySDR::Device *hackrf_source;
-    // AudioOutput* audioOutput{};
-
+    osmosdr::source::sptr hackrf_osmo_source;
+    SoapySDR::Device *hackrf_soapy_source;
     gr::top_block_sptr tb;
-    gr::analog::quadrature_demod_cf::sptr fm_demod;
-    bool m_stop;
 protected:
     void run() override;
 };
