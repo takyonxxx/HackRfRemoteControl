@@ -95,7 +95,7 @@ unix:!macx{
     INCLUDEPATH += /usr/include
     INCLUDEPATH += /usr/local/include
     INCLUDEPATH += /usr/local/lib
-    INCLUDEPATH += /usr/include/libhackrf   
+    INCLUDEPATH += /usr/include/libhackrf
     INCLUDEPATH += /lib/x86_64-linux-gnu
     INCLUDEPATH += /usr/include/SoapySDR
     INCLUDEPATH += /usr/include/osmosdr
@@ -105,7 +105,7 @@ unix:!macx{
     -lboost_program_options
     -lboost_thread
 
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread -losmosdr
+    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread -losmosdr -lfmt
     LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
