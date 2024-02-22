@@ -5,9 +5,9 @@
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
 #define DEFAULT_SAMPLE_RATE             MHZ(2)
+#define DEFAULT_AUDIO_SAMPLE_RATE       KHZ(48)
 #define DEFAULT_CHANNEL_WIDTH           KHZ(300)
 #define DEFAULT_FREQUENCY               MHZ(100)
-#define DEFAULT_AUDIO_SAMPLE_RATE       KHZ(48)
 #define DEFAULT_AUDIO_GAIN              0.75
 
 #include <QCoreApplication>
@@ -24,9 +24,33 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
+#include <gnuradio/sync_block.h>
+#include <gnuradio/messages/msg_queue.h>
+#include <gnuradio/io_signature.h>
+#include <gnuradio/gr_complex.h>
 #include <osmosdr/source.h>
 #include <message.h>
 #include "gattserver.h"
+
+
+
+class BufferBlock : public gr::block
+{
+public:
+    typedef std::shared_ptr<BufferBlock> sptr;
+
+    BufferBlock();
+    void set_input_buffer(const std::vector<float>& input_buffer);
+
+private:
+    std::vector<float> input_buffer;
+
+    int general_work(int noutput_items,
+                     gr_vector_int& ninput_items,
+                     gr_vector_const_void_star& input_items,
+                     gr_vector_void_star& output_items) override;
+};
+
 
 class SdrDevice : public QThread
 {
@@ -40,6 +64,7 @@ public:
     void setSampleRate(double sampleRate);
     double getSampleRate();
     void setGain(double gain);
+
     typedef enum {
         DEMOD_AM,
         DEMOD_WFM

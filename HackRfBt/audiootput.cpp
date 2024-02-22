@@ -54,14 +54,3 @@ void AudioOutput::writeBuffer(const QByteArray &buffer)
         io->write(buffer.data(), buffer.size());
     }
 }
-
-void AudioOutput::generateSineWave(short *buffer, int bufferSize, int sampleRate, int frequency)
-{
-    const double twoPi = 2.0 * 3.141592653589793238462643383279502884197169399375105820974944;
-
-    for (int i = 0; i < bufferSize / sizeof(short); ++i)
-    {
-        double time = static_cast<double>(i) / sampleRate;
-        buffer[i] = static_cast<short>(32767.0 * sin(twoPi * frequency * time));
-    }
-}

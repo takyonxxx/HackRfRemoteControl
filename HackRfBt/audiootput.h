@@ -25,10 +25,13 @@ public:
     ~AudioOutput();
     void stop();
     void writeBuffer(const QByteArray &buffer);
+    void setSampleRate(int sampleRate)
+    {
+        m_format.setSampleRate(sampleRate);
+    }
 
 private slots:
     void handleAudioOutputStateChanged(QAudio::State newState);
-    void generateSineWave(short *buffer, int bufferSize, int sampleRate, int frequency);
 
 private:
 
@@ -44,3 +47,5 @@ private:
 };
 
 #endif // AUIOOUTPUTTHREAD_H
+
+

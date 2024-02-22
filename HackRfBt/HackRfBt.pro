@@ -106,7 +106,7 @@ unix:!macx{
     -lboost_thread
 
     LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread -losmosdr -lfmt
-    LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr
+    LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr -lgnuradio-pmt
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
     # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf

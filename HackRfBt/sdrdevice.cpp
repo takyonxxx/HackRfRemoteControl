@@ -1,4 +1,40 @@
 #include "sdrdevice.h"
+
+BufferBlock::BufferBlock() : gr::block("BufferBlock",
+                gr::io_signature::make(1, 1, sizeof(float)),  // Input signature
+                gr::io_signature::make(0, 0, 0))  // Output signature (empty)
+                // gr::io_signature::make(1, 1, sizeof(float)))  // Output signature
+{
+}
+
+void BufferBlock::set_input_buffer(const std::vector<float>& input_buffer)
+{
+    this->input_buffer = input_buffer;
+}
+
+int BufferBlock::general_work(int noutput_items,
+                              gr_vector_int& ninput_items,
+                              gr_vector_const_void_star& input_items,
+                              gr_vector_void_star& output_items)
+{
+    // Ensure that there is input data available
+    if (input_items[0] == 0) {
+        return 0;
+    }
+
+    // Get pointers to input buffer
+    const float* in = (const float*)input_items[0];
+    // Get the byte size of the input buffer
+    size_t byte_size = noutput_items * sizeof(float);
+    // Print the byte size
+    std::cout << "Byte Size of Input Buffer: " << byte_size << " bytes" << std::endl;
+
+    // Process input as needed
+
+    // Return the number of input items consumed
+    return noutput_items;
+}
+
 SdrDevice::SdrDevice(QObject *parent):
     QThread(parent)
 {
@@ -193,10 +229,16 @@ void SdrDevice::run()
     auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
 
+    BufferBlock::sptr buffer_block = std::make_shared<BufferBlock>();
+
     tb->connect(hackrf_osmo_source, 0, resampler, 0);
     tb->connect(resampler, 0, quad_demod, 0);
     tb->connect(quad_demod, 0, low_pass_filter, 0);
     tb->connect(low_pass_filter, 0, multiply_const, 0);
+    // tb->connect(multiply_const, 0, buffer_block, 0);
     tb->connect(multiply_const, 0, audio_sink, 0);
-    tb->run();
+    tb->start();
+    // Stop the flow graph (never reached in this example)
+    // tb->stop();
+    // tb->wait();
 }
