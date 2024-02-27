@@ -17,7 +17,8 @@ SOURCES += \
         main.cpp \
         message.cpp \
         modulator.cpp \
-        sdrdevice.cpp
+        osmodevice.cpp \
+        soapydevice.cpp
 
 HEADERS += \
     IHackRFData.h \
@@ -26,7 +27,8 @@ HEADERS += \
     hackrfmanager.h \
     modulator.h \
     message.h \
-    sdrdevice.h \
+    osmodevice.h \
+    soapydevice.h \
     tcpclient.h \
     topblock.h \
     udpclient.h
@@ -37,18 +39,22 @@ macos {
     QMAKE_ASSET_CATALOGS = $$PWD/macos/Assets.xcassets
     QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
 
-    INCLUDEPATH += /opt/homebrew/Cellar/gnuradio/3.10.9.2_1/include
-    INCLUDEPATH += /opt/homebrew/Cellar/soapysdr/0.8.1_1/include
-    INCLUDEPATH += /opt/homebrew/Cellar/boost/1.84.0/include
-    INCLUDEPATH += /opt/homebrew/Cellar/uhd/4.6.0.0_1/include
     INCLUDEPATH += /opt/homebrew/opt/rtl-sdr/include
     INCLUDEPATH += /opt/homebrew/Cellar/fftw/3.3.10_1/include
     INCLUDEPATH += /opt/homebrew/Cellar/portaudio/19.7.0/include
     INCLUDEPATH += /opt/homebrew/Cellar/hackrf/2023.01.1/include/libhackrf
-    INCLUDEPATH += /opt/homebrew/Cellar/opt/qwt/include
     INCLUDEPATH += /opt/homebrew/Cellar/spdlog/1.12.0/include
     INCLUDEPATH += /opt/homebrew/Cellar/fmt/10.2.1/include
     INCLUDEPATH += /opt/homebrew/Cellar/gmp/6.3.0/include
+
+    LIBS += -L/opt/homebrew/opt/rtl-sdr/lib -lrtlsdr \
+        -L/opt/homebrew/Cellar/fftw/3.3.10_1/lib -lfftw3 \
+        -L/opt/homebrew/Cellar/portaudio/19.7.0/lib -lportaudio \
+        -L/opt/homebrew/Cellar/hackrf/2023.01.1/lib -lhackrf
+
+    INCLUDEPATH += /opt/homebrew/Cellar/gnuradio/3.10.9.2_1/include
+    INCLUDEPATH += /opt/homebrew/Cellar/boost/1.84.0/include
+    INCLUDEPATH += /opt/homebrew/Cellar/soapysdr/0.8.1_1/include
 
     LIBS += -L/opt/homebrew/Cellar/gnuradio/3.10.9.2_1/lib \
         -lgnuradio-analog \
@@ -58,21 +64,11 @@ macos {
         -lgnuradio-fft \
         -lgnuradio-runtime \
         -lgnuradio-audio \
-        -lgnuradio-osmosdr \
+        -lgnuradio-soapy \
         -lgnuradio-uhd
 
-    LIBS += -L/opt/homebrew/Cellar/soapysdr/0.8.1_1/lib -lSoapySDR
-
     LIBS += -L/opt/homebrew/Cellar/boost//1.84.0/lib -lboost_system -lboost_filesystem-mt -lboost_program_options
-
-    LIBS += -L/opt/homebrew/opt/rtl-sdr/lib -lrtlsdr \
-        -L/opt/homebrew/Cellar/fftw/3.3.10_1/lib -lfftw3 \
-        -L/opt/homebrew/Cellar/portaudio/19.7.0/lib -lportaudio \
-        -L/opt/homebrew/Cellar/uhd/4.6.0.0_1/lib -luhd \
-        -L/opt/homebrew/Cellar/hackrf/2023.01.1/lib -lhackrf
-
-    INCLUDEPATH += /opt/local/include
-    LIBS += -L/opt/local/lib -lqwt
+    LIBS += -L/opt/homebrew/Cellar/soapysdr/0.8.1_1/lib -lSoapySDR
 }
 
 unix:!macx{

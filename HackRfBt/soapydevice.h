@@ -1,19 +1,12 @@
-#ifndef SDRDEVICE_H
-#define SDRDEVICE_H
-
-#define GHZ(x) ((uint64_t)(x) * 1000000000)
-#define MHZ(x) ((x) * 1000000)
-#define KHZ(x) ((x) * 1000)
-#define DEFAULT_SAMPLE_RATE             MHZ(2)
-#define DEFAULT_AUDIO_SAMPLE_RATE       KHZ(48)
-#define DEFAULT_CHANNEL_WIDTH           KHZ(300)
-#define DEFAULT_FREQUENCY               MHZ(100)
-#define DEFAULT_AUDIO_GAIN              0.75
+#ifndef SOAPYDEVICE_H
 
 #include <QCoreApplication>
 #include <QBuffer>
 #include <QDebug>
 #include <QThread>
+
+#include <message.h>
+#include "gattserver.h"
 
 #include <gnuradio/constants.h>
 #include <gnuradio/prefs.h>
@@ -28,36 +21,20 @@
 #include <gnuradio/messages/msg_queue.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/gr_complex.h>
-#include <osmosdr/source.h>
-#include <message.h>
-#include "gattserver.h"
+#include <gnuradio/soapy/sink.h>
 
+#ifdef Q_OS_MACOS
+#include <SoapySDR/Device.hpp>
+#include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Logger.hpp>
+#endif
 
-
-class BufferBlock : public gr::block
-{
-public:
-    typedef std::shared_ptr<BufferBlock> sptr;
-
-    BufferBlock();
-    void set_input_buffer(const std::vector<float>& input_buffer);
-
-private:
-    std::vector<float> input_buffer;
-
-    int general_work(int noutput_items,
-                     gr_vector_int& ninput_items,
-                     gr_vector_const_void_star& input_items,
-                     gr_vector_void_star& output_items) override;
-};
-
-
-class SdrDevice : public QThread
+class SoapyDevice : public QThread
 {
     Q_OBJECT
 public:
-    explicit SdrDevice(QObject *parent = nullptr);
-    ~SdrDevice();
+    explicit SoapyDevice(QObject *parent = nullptr);
+    ~SoapyDevice();
 
     void setFrequency(double frequency);
     double getCenterFrequency() const;
@@ -78,10 +55,12 @@ public:
     } FreqMod;
 
 private:
-    osmosdr::source::sptr hackrf_osmo_source;
-    gr::top_block_sptr tb;
+#ifdef Q_OS_MACOS
+    SoapySDR::Device *hackrf_soapy_source;
+#endif
     GattServer *gattServer{};
     Message message;
+    gr::top_block_sptr tb;
 
     int sample_rate ;
     int audio_samp_rate;
@@ -94,13 +73,13 @@ private:
     double audio_gain;
     double currentFrequency;
 
-    QString enumToString(SdrDevice::Demod demod)
+    QString enumToString(SoapyDevice::Demod demod)
     {
         switch (demod)
         {
-        case SdrDevice::DEMOD_AM:
+        case SoapyDevice::DEMOD_AM:
             return "AM";
-        case SdrDevice::DEMOD_WFM:
+        case SoapyDevice::DEMOD_WFM:
             return "WFM";
         default:
             return "Unknown";
@@ -120,4 +99,4 @@ protected:
     void run() override;
 };
 
-#endif // SDRDEVICE_H
+#endif // SOAPYDEVICE_H

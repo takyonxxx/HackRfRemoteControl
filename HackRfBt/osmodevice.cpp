@@ -1,9 +1,10 @@
-#include "sdrdevice.h"
+#include "osmodevice.h"
+#ifdef Q_OS_LINUX
 
 BufferBlock::BufferBlock() : gr::block("BufferBlock",
                 gr::io_signature::make(1, 1, sizeof(float)),  // Input signature
                 gr::io_signature::make(0, 0, 0))  // Output signature (empty)
-                // gr::io_signature::make(1, 1, sizeof(float)))  // Output signature
+// gr::io_signature::make(1, 1, sizeof(float)))  // Output signature
 {
 }
 
@@ -29,13 +30,13 @@ int BufferBlock::general_work(int noutput_items,
     // Print the byte size
     std::cout << "Byte Size of Input Buffer: " << byte_size << " bytes" << std::endl;
 
-    // Process input as needed
-
     // Return the number of input items consumed
     return noutput_items;
 }
 
-SdrDevice::SdrDevice(QObject *parent):
+#endif
+
+OsmoDevice::OsmoDevice(QObject *parent):
     QThread(parent)
 {
     sample_rate            = DEFAULT_SAMPLE_RATE;
@@ -51,6 +52,8 @@ SdrDevice::SdrDevice(QObject *parent):
     currentFrequency = center_freq;
 
     qDebug() << sample_rate << audio_samp_rate << audio_gain << cut_off << transition << decimation;
+
+#ifdef Q_OS_LINUX
 
     hackrf_osmo_source = osmosdr::source::make("hackrf=0");
 
@@ -75,6 +78,8 @@ SdrDevice::SdrDevice(QObject *parent):
     qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
     qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
 
+#endif
+
     // gattServer = GattServer::getInstance();
     // if (gattServer)
     // {
@@ -86,53 +91,63 @@ SdrDevice::SdrDevice(QObject *parent):
     // }
 }
 
-SdrDevice::~SdrDevice()
+OsmoDevice::~OsmoDevice()
 {       
 }
 
-void SdrDevice::setFrequency(double frequency)
+void OsmoDevice::setFrequency(double frequency)
 {
+#ifdef Q_OS_LINUX
     if (hackrf_osmo_source) {
         hackrf_osmo_source->set_center_freq(frequency);
         currentFrequency = getCenterFrequency();
     }
+#endif
 }
 
-double SdrDevice::getCenterFrequency() const
-{   
+double OsmoDevice::getCenterFrequency() const
+{
+#ifdef Q_OS_LINUX
     if (hackrf_osmo_source)
     {
         return hackrf_osmo_source->get_center_freq();
     }
+#endif
     return 0;
 }
 
-void SdrDevice::setSampleRate(double sampleRate)
+void OsmoDevice::setSampleRate(double sampleRate)
 {
+#ifdef Q_OS_LINUX
     if (hackrf_osmo_source) {
         hackrf_osmo_source->set_sample_rate(sampleRate);
         sample_rate = getSampleRate();
     }
+#endif
 }
 
-double SdrDevice::getSampleRate()
+double OsmoDevice::getSampleRate()
 {
+#ifdef Q_OS_LINUX
     if (hackrf_osmo_source) {
         return hackrf_osmo_source->get_sample_rate();
     }
+#endif
     return sample_rate;
 }
 
-void SdrDevice::setGain(double gain)
+void OsmoDevice::setGain(double gain)
 {
+#ifdef Q_OS_LINUX
     if (hackrf_osmo_source)
     {
         hackrf_osmo_source->set_if_gain(gain, 0);
         hackrf_osmo_source->set_bb_gain(gain, 0);
     }
+#endif
 }
 
-void SdrDevice::onConnectionStatedChanged(bool state)
+void OsmoDevice::onConnectionStatedChanged(bool state)
 {
     if(state)
     {
@@ -144,7 +159,7 @@ void SdrDevice::onConnectionStatedChanged(bool state)
     }
 }
 
-void SdrDevice::onDataReceived(QByteArray data)
+void OsmoDevice::onDataReceived(QByteArray data)
 {
     uint8_t parsedCommand;
     uint8_t rw;
@@ -157,7 +172,7 @@ void SdrDevice::onDataReceived(QByteArray data)
     int value =  parsedValue.toHex().toInt(&ok, 16);
 }
 
-void SdrDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
+void OsmoDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
 {
     uint8_t buffer[MaxPayload+8] = {'\0'};
     uint8_t command = msgId;
@@ -170,7 +185,7 @@ void SdrDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QBy
     }
 }
 
-bool SdrDevice::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
+bool OsmoDevice::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
 {
     MessagePack parsedMessage;
 
@@ -191,7 +206,7 @@ bool SdrDevice::parseMessage(QByteArray *data, uint8_t &command, QByteArray &val
     return false;
 }
 
-void SdrDevice::sendCommand(uint8_t command, uint8_t value)
+void OsmoDevice::sendCommand(uint8_t command, uint8_t value)
 {
     // Convert the uint32_t value to a QByteArray
     QByteArray payload;
@@ -203,7 +218,7 @@ void SdrDevice::sendCommand(uint8_t command, uint8_t value)
     gattServer->writeValue(sendData);
 }
 
-void SdrDevice::sendString(uint8_t command, const QString& value)
+void OsmoDevice::sendString(uint8_t command, const QString& value)
 {
     QByteArray sendData;
     QByteArray bytedata;
@@ -212,12 +227,12 @@ void SdrDevice::sendString(uint8_t command, const QString& value)
     gattServer->writeValue(sendData);
 }
 
-void SdrDevice::onInfoReceived(QString info)
+void OsmoDevice::onInfoReceived(QString info)
 {
     qDebug() << info;
 }
 
-void SdrDevice::run()
+void OsmoDevice::run()
 {
     tb = gr::make_top_block("HackRf");
 
@@ -228,17 +243,18 @@ void SdrDevice::run()
         gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));
     auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
-
+#ifdef Q_OS_LINUX
     BufferBlock::sptr buffer_block = std::make_shared<BufferBlock>();
+#endif
 
+#ifdef Q_OS_LINUX
     tb->connect(hackrf_osmo_source, 0, resampler, 0);
     tb->connect(resampler, 0, quad_demod, 0);
     tb->connect(quad_demod, 0, low_pass_filter, 0);
     tb->connect(low_pass_filter, 0, multiply_const, 0);
     // tb->connect(multiply_const, 0, buffer_block, 0);
     tb->connect(multiply_const, 0, audio_sink, 0);
+#endif
+
     tb->start();
-    // Stop the flow graph (never reached in this example)
-    // tb->stop();
-    // tb->wait();
 }
