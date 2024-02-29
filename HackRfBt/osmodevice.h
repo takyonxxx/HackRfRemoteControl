@@ -9,39 +9,25 @@
 #include <gnuradio/constants.h>
 #include <gnuradio/prefs.h>
 #include <gnuradio/top_block.h>
+#include <gnuradio/sync_block.h>
 #include <gnuradio/blocks/multiply_const.h>
 #include <gnuradio/filter/rational_resampler.h>
 #include <gnuradio/audio/sink.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_blk.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
-#include <gnuradio/sync_block.h>
-#include <gnuradio/messages/msg_queue.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/gr_complex.h>
+
+#include <osmosdr/source.h>
+
+#include <SoapySDR/Device.hpp>
+#include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Logger.hpp>
+
 #include <message.h>
 #include "gattserver.h"
 
-#ifdef Q_OS_LINUX
-#include <osmosdr/source.h>
-
-class BufferBlock : public gr::block
-{
-public:
-    typedef std::shared_ptr<BufferBlock> sptr;
-
-    BufferBlock();
-    void set_input_buffer(const std::vector<float>& input_buffer);
-
-private:
-    std::vector<float> input_buffer;
-
-    int general_work(int noutput_items,
-                     gr_vector_int& ninput_items,
-                     gr_vector_const_void_star& input_items,
-                     gr_vector_void_star& output_items) override;
-};
-#endif
 
 class OsmoDevice : public QThread
 {
@@ -73,7 +59,7 @@ private:
 #ifdef Q_OS_LINUX
     osmosdr::source::sptr hackrf_osmo_source;
 #endif
-    GattServer *gattServer{};
+    GattServer *gattServer{};   
     Message message;
     gr::top_block_sptr tb;
 

@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QBuffer>
 
-AudioOutput::AudioOutput(QObject *parent, int sampleFormat, int channelCount):
+AudioOutput::AudioOutput(QObject *parent, int sampleRate, int channelCount):
     QObject(parent)
 {
     QAudioDevice outputDevice;
@@ -17,15 +17,14 @@ AudioOutput::AudioOutput(QObject *parent, int sampleFormat, int channelCount):
         return;
     }
 
-    m_format.setSampleFormat(QAudioFormat::Int16);
-    m_format.setSampleRate(sampleFormat);
+    m_format.setSampleFormat(QAudioFormat::Float);
+    m_format.setSampleRate(sampleRate);
     m_format.setChannelCount(channelCount);
 
     m_audioOutput.reset(new QAudioSink(outputDevice, m_format));
     io = m_audioOutput->start();
     queue = new QQueue<QByteArray>();
-
-    qDebug() << "Default Sound Device: " << outputDevice.description() << sampleFormat << channelCount;
+    qDebug() << "Default Sound Device: " << outputDevice.description() << sampleRate << channelCount;
 }
 
 AudioOutput::~AudioOutput()
@@ -46,7 +45,7 @@ void AudioOutput::stop()
     m_abort = true;
 }
 
-void AudioOutput::writeBuffer(const QByteArray &buffer)
+void AudioOutput::write(const QByteArray &buffer)
 {   
     QMutexLocker locker(mutex);
     if (!m_abort)

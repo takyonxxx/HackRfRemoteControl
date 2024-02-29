@@ -12,23 +12,23 @@ QMAKE_ASSET_CATALOGS_BUILD_PATH = $$PWD
 
 SOURCES += \
         audiootput.cpp \
+        customaudiosink.cpp \
         gattserver.cpp \
         hackrfmanager.cpp \
         main.cpp \
         message.cpp \
         modulator.cpp \
-        osmodevice.cpp \
-        soapydevice.cpp
+        osmodevice.cpp
 
 HEADERS += \
     IHackRFData.h \
     audiootput.h \
+    customaudiosink.h \
     gattserver.h \
     hackrfmanager.h \
     modulator.h \
     message.h \
     osmodevice.h \
-    soapydevice.h \
     tcpclient.h \
     topblock.h \
     udpclient.h

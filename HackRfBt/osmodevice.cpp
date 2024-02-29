@@ -1,40 +1,5 @@
 #include "osmodevice.h"
-#ifdef Q_OS_LINUX
-
-BufferBlock::BufferBlock() : gr::block("BufferBlock",
-                gr::io_signature::make(1, 1, sizeof(float)),  // Input signature
-                gr::io_signature::make(0, 0, 0))  // Output signature (empty)
-// gr::io_signature::make(1, 1, sizeof(float)))  // Output signature
-{
-}
-
-void BufferBlock::set_input_buffer(const std::vector<float>& input_buffer)
-{
-    this->input_buffer = input_buffer;
-}
-
-int BufferBlock::general_work(int noutput_items,
-                              gr_vector_int& ninput_items,
-                              gr_vector_const_void_star& input_items,
-                              gr_vector_void_star& output_items)
-{
-    // Ensure that there is input data available
-    if (input_items[0] == 0) {
-        return 0;
-    }
-
-    // Get pointers to input buffer
-    const float* in = (const float*)input_items[0];
-    // Get the byte size of the input buffer
-    size_t byte_size = noutput_items * sizeof(float);
-    // Print the byte size
-    std::cout << "Byte Size of Input Buffer: " << byte_size << " bytes" << std::endl;
-
-    // Return the number of input items consumed
-    return noutput_items;
-}
-
-#endif
+#include "customaudiosink.h"
 
 OsmoDevice::OsmoDevice(QObject *parent):
     QThread(parent)
@@ -53,8 +18,6 @@ OsmoDevice::OsmoDevice(QObject *parent):
 
     qDebug() << sample_rate << audio_samp_rate << audio_gain << cut_off << transition << decimation;
 
-#ifdef Q_OS_LINUX
-
     hackrf_osmo_source = osmosdr::source::make("hackrf=0");
 
     hackrf_osmo_source->set_time_unknown_pps(osmosdr::time_spec_t());
@@ -72,13 +35,41 @@ OsmoDevice::OsmoDevice(QObject *parent):
 
     std::string ver = gr::version();
     qDebug() << "GNU Radio Version: " + ver;
+    qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
     qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
     qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
     qDebug() << "Actual RX Gain: " << hackrf_osmo_source->get_gain() << " dB...";
     qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
     qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
 
-#endif
+    //     SoapySDR::Kwargs args;
+    //     args["driver"] = "hackrf";
+    //     args["device"] = "0";
+
+    //     std::string dev = "hackrf=0";
+    //     std::string stream_args = "";
+    //     std::vector<std::string> tune_args = {""};
+    //     std::vector<std::string> settings = {""};
+
+    //     hackrf_soapy_source = SoapySDR::Device::make(args);
+
+    //     hackrf_soapy_source->setSampleRate(SOAPY_SDR_RX, 0, sample_rate);
+    //     hackrf_soapy_source->setBandwidth(SOAPY_SDR_RX, 0, 0);
+    //     hackrf_soapy_source->setFrequency(SOAPY_SDR_RX, 0, center_freq);
+    //     hackrf_soapy_source->setGain(0, SOAPY_SDR_RX, "AMP", false);
+    //     hackrf_soapy_source->setGain(SOAPY_SDR_RX, 0, "LNA", std::min(std::max(40.0, 0.0), 40.0));
+    //     hackrf_soapy_source->setGain(SOAPY_SDR_RX, 0, "VGA", std::min(std::max(40.0, 0.0), 62.0));
+
+    //     std::string ver = gr::version();
+    //     qDebug() << "GNU Radio Version: " + ver;
+    //     qDebug() << "Center Frequency: " << hackrf_soapy_source->getFrequency(SOAPY_SDR_RX, 0) << " Hz";
+    //     qDebug() << "Sample Rate: " << hackrf_soapy_source->getSampleRate(SOAPY_SDR_RX, 0) << " Hz\n";
+    //     qDebug() << "Actual RX Gain: " << hackrf_soapy_source->getGain(SOAPY_SDR_RX, 0) << " dB...";
+    //     qDebug() << "LNA Gain: " << hackrf_soapy_source->getGain(SOAPY_SDR_RX, 0, "LNA") << " dB";
+    //     qDebug() << "VGA Gain: " << hackrf_soapy_source->getGain(SOAPY_SDR_RX, 0, "VGA") << " dB";
+
+    //     gr::soapy::sink::sptr hackrf_soapy_sink = gr::soapy::sink::make(dev, "fc32", 1, "hackrf=0", "", tune_args, settings);
+    // }
 
     // gattServer = GattServer::getInstance();
     // if (gattServer)
@@ -97,54 +88,44 @@ OsmoDevice::~OsmoDevice()
 
 void OsmoDevice::setFrequency(double frequency)
 {
-#ifdef Q_OS_LINUX
     if (hackrf_osmo_source) {
         hackrf_osmo_source->set_center_freq(frequency);
         currentFrequency = getCenterFrequency();
     }
-#endif
 }
 
 double OsmoDevice::getCenterFrequency() const
 {
-#ifdef Q_OS_LINUX
     if (hackrf_osmo_source)
     {
         return hackrf_osmo_source->get_center_freq();
     }
-#endif
     return 0;
 }
 
 void OsmoDevice::setSampleRate(double sampleRate)
 {
-#ifdef Q_OS_LINUX
     if (hackrf_osmo_source) {
         hackrf_osmo_source->set_sample_rate(sampleRate);
         sample_rate = getSampleRate();
     }
-#endif
 }
 
 double OsmoDevice::getSampleRate()
 {
-#ifdef Q_OS_LINUX
     if (hackrf_osmo_source) {
         return hackrf_osmo_source->get_sample_rate();
     }
-#endif
     return sample_rate;
 }
 
 void OsmoDevice::setGain(double gain)
 {
-#ifdef Q_OS_LINUX
     if (hackrf_osmo_source)
     {
         hackrf_osmo_source->set_if_gain(gain, 0);
         hackrf_osmo_source->set_bb_gain(gain, 0);
     }
-#endif
 }
 
 void OsmoDevice::onConnectionStatedChanged(bool state)
@@ -241,20 +222,15 @@ void OsmoDevice::run()
     auto low_pass_filter = gr::filter::fir_filter_fff::make(
         6,
         gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));
-    auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
+    // auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
-#ifdef Q_OS_LINUX
-    BufferBlock::sptr buffer_block = std::make_shared<BufferBlock>();
-#endif
+    auto custom_audio_sink = std::make_shared<CustomAudioSink>(audio_samp_rate, "audio_sink", true);
 
-#ifdef Q_OS_LINUX
     tb->connect(hackrf_osmo_source, 0, resampler, 0);
     tb->connect(resampler, 0, quad_demod, 0);
     tb->connect(quad_demod, 0, low_pass_filter, 0);
     tb->connect(low_pass_filter, 0, multiply_const, 0);
-    // tb->connect(multiply_const, 0, buffer_block, 0);
-    tb->connect(multiply_const, 0, audio_sink, 0);
-#endif
-
+    tb->connect(multiply_const, 0, custom_audio_sink, 0);
+    // tb->connect(multiply_const, 0, audio_sink, 0);
     tb->start();
 }

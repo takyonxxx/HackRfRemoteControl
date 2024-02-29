@@ -20,11 +20,11 @@ class AudioOutput: public QObject
     Q_OBJECT
 public:
     explicit AudioOutput(QObject *parent = nullptr,
-                         int sampleFormat = DEFAULT_AUDIO_SAMPLE_RATE,
+                         int sampleRate = DEFAULT_AUDIO_SAMPLE_RATE,
                          int channelCount = DEFAULT_CHANNEL_COUNT);
     ~AudioOutput();
     void stop();
-    void writeBuffer(const QByteArray &buffer);
+    void write(const QByteArray &buffer);
     void setSampleRate(int sampleRate)
     {
         m_format.setSampleRate(sampleRate);

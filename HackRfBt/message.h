@@ -31,11 +31,11 @@
 #define GHZ(x) ((uint64_t)(x) * 1000000000)
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
-#define DEFAULT_SAMPLE_RATE             MHZ(2)
+#define DEFAULT_SAMPLE_RATE             MHZ(20)
 #define DEFAULT_AUDIO_SAMPLE_RATE       KHZ(48)
 #define DEFAULT_CHANNEL_WIDTH           KHZ(300)
 #define DEFAULT_FREQUENCY               MHZ(100)
-#define DEFAULT_AUDIO_GAIN              0.75
+#define DEFAULT_AUDIO_GAIN              1.0
 
 //message len max is 256, header, command, rw and cheksum total len is 8, therefore payload max len is 248
 //max input bluetooth buffer in this chip allows a payload max 0x38
