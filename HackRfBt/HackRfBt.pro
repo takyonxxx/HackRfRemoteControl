@@ -84,6 +84,7 @@ unix:!macx{
 #    sudo apt-get install hackrf
 #    sudo apt-get install -y libhackrf-dev
 #    sudo apt-get install libosmosdr-dev
+#    sudo apt-get install libgl1-mesa-dev
 #    sudo apt-get install gr-osmosdr
 #    sudo apt-get install gnuradio
 
@@ -93,7 +94,6 @@ unix:!macx{
     INCLUDEPATH += /usr/local/lib
     INCLUDEPATH += /usr/include/libhackrf
     INCLUDEPATH += /lib/x86_64-linux-gnu
-    INCLUDEPATH += /usr/include/SoapySDR
     INCLUDEPATH += /usr/include/osmosdr
 
     LIBS += -L/usr/local/lib \
@@ -101,7 +101,7 @@ unix:!macx{
     -lboost_program_options
     -lboost_thread
 
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -llog4cpp -lSoapySDR -lpthread -losmosdr -lfmt
+    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -lpthread -losmosdr -lfmt
     LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr -lgnuradio-pmt
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu

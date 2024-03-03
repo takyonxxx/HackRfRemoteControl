@@ -1,10 +1,5 @@
 #include <QCoreApplication>
-#ifdef Q_OS_MACOS
-#include "soapydevice.h"
-#endif
-#ifdef Q_OS_LINUX
 #include "osmodevice.h"
-#endif
 
 int main(int argc, char *argv[])
 {
