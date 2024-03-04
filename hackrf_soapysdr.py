@@ -103,7 +103,7 @@ class hackrf_soapysdr(gr.top_block, Qt.QWidget):
                                   stream_args, tune_args, settings)
         self.hackrf_source.set_sample_rate(0, sample_rate)
         self.hackrf_source.set_bandwidth(0, 0)
-        self.hackrf_source.set_frequency(0, 100e06)
+        self.hackrf_source.set_frequency(0, center_freq)
         self.hackrf_source.set_gain(0, 'AMP', False)
         self.hackrf_source.set_gain(0, 'LNA', min(max(40, 0.0), 40.0))
         self.hackrf_source.set_gain(0, 'VGA', min(max(40, 0.0), 62.0))
@@ -198,6 +198,7 @@ class hackrf_soapysdr(gr.top_block, Qt.QWidget):
     def set_center_freq(self, center_freq):
         self.center_freq = center_freq
         self.freq_sink.set_frequency_range(self.center_freq, self.sample_rate)
+        self.hackrf_source.set_frequency(0, self.center_freq)
 
     def get_audio_gain(self):
         return self.audio_gain

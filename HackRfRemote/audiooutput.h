@@ -13,12 +13,12 @@
 #include <QIODevice>
 
 
-class AudioOutputThread: public QObject
+class AudioOutput: public QObject
 {
     Q_OBJECT
 public:
-    explicit AudioOutputThread(QObject *parent, int sampleFormat);
-    ~AudioOutputThread();
+    explicit AudioOutput(QObject *parent, int sampleFormat);
+    ~AudioOutput();
     void stop();
     void writeBuffer(const QByteArray &buffer);
 
@@ -34,7 +34,7 @@ private:
 
     QAudioFormat m_format;
     QScopedPointer<QAudioSink> m_audioOutput;
-    QIODevice *io;
+    QIODevice *audioDevice;
     QQueue<QByteArray> m_audioQueue;
     QMutex m_mutex;
 };

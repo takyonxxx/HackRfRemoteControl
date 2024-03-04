@@ -8,8 +8,8 @@ HackRfManager::HackRfManager(QObject *parent) :
 
 HackRfManager::~HackRfManager()
 {
-    if (audioOutputThread) {
-        delete audioOutputThread;
+    if (audioOutput) {
+        delete audioOutput;
     }
 }
 
@@ -25,13 +25,13 @@ void HackRfManager::setStop(bool newStop)
 
 void HackRfManager::setDemod(Demod newDemod)
 {
-    if (audioOutputThread) {
-        delete audioOutputThread;
+    if (audioOutput) {
+        delete audioOutput;
     }
 
     auto samplingRate = getSamplingRate(newDemod);
     if (samplingRate != -1) {
-        audioOutputThread = new AudioOutputThread(this, samplingRate);
+        audioOutput = new AudioOutput(this, samplingRate);
     }
 }
 
@@ -49,8 +49,8 @@ void HackRfManager::run()
     {
         if (!m_bufferQueue.isEmpty())
         {
-            if(audioOutputThread)
-                audioOutputThread->writeBuffer(m_bufferQueue.dequeue());
+            if(audioOutput)
+                audioOutput->writeBuffer(m_bufferQueue.dequeue());
         }
         QThread::msleep(10);
     }

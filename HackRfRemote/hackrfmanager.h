@@ -6,7 +6,7 @@
 #include <QQueue>
 #include <QDebug>
 #include <message.h>
-#include "audiootputthread.h"
+#include "audiooutput.h"
 
 const int sampleRate = 22050;
 const int channelCount = 1;
@@ -101,7 +101,7 @@ public:
 
 private:
     QQueue<QByteArray> m_bufferQueue;
-    AudioOutputThread *audioOutputThread{};   
+    AudioOutput *audioOutput{};
     bool m_stop;
     bool m_ptt;
     QMutex mutex;

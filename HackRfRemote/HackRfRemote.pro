@@ -8,7 +8,7 @@ TARGET = HacRfRemote
 TEMPLATE = app
 
 SOURCES += main.cpp\
-    audiootputthread.cpp \
+    audiooutput.cpp \
     freqctrl.cpp \
     hackrfmanager.cpp \
         mainwindow.cpp \
@@ -19,7 +19,7 @@ SOURCES += main.cpp\
     udpserver.cpp
 
 HEADERS  += mainwindow.h \
-    audiootputthread.h \
+    audiooutput.h \
     deviceinfo.h \
     freqctrl.h \
     hackrfmanager.h \
