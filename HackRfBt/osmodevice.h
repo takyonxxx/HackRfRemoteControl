@@ -22,6 +22,7 @@
 #include <osmosdr/source.h>
 #include <message.h>
 #include "gattserver.h"
+#include "customaudiosink.h"
 
 
 class OsmoDevice : public QThread
@@ -57,6 +58,8 @@ private:
     GattServer *gattServer{};   
     Message message;
     gr::top_block_sptr tb;
+
+    std::shared_ptr<CustomAudioSink> customAudioSink;
 
     int sample_rate ;
     int audio_samp_rate;

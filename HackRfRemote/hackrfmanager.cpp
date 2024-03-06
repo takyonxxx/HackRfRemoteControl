@@ -29,7 +29,9 @@ void HackRfManager::setDemod(Demod newDemod)
         delete audioOutput;
     }
 
-    auto samplingRate = getSamplingRate(newDemod);
+    // auto samplingRate = getSamplingRate(newDemod);
+
+    auto samplingRate = 48000;
     if (samplingRate != -1) {
         audioOutput = new AudioOutput(this, samplingRate);
     }

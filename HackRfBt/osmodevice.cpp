@@ -1,5 +1,4 @@
 #include "osmodevice.h"
-#include "customaudiosink.h"
 
 OsmoDevice::OsmoDevice(QObject *parent):
     QThread(parent)
@@ -33,6 +32,18 @@ OsmoDevice::OsmoDevice(QObject *parent):
     hackrf_osmo_source->set_antenna("", 0);
     hackrf_osmo_source->set_bandwidth(0, 0);
 
+    customAudioSink = std::make_shared<CustomAudioSink>(audio_samp_rate, "audio_sink", true);
+
+    gattServer = GattServer::getInstance();
+    if (gattServer)
+    {
+        qDebug() << "Starting gatt service";
+        QObject::connect(gattServer, &GattServer::connectionState, this, &OsmoDevice::onConnectionStatedChanged);
+        QObject::connect(gattServer, &GattServer::dataReceived, this, &OsmoDevice::onDataReceived);
+        QObject::connect(gattServer, &GattServer::sendInfo, this, &OsmoDevice::onInfoReceived);
+        gattServer->startBleService();
+    }
+
     std::string ver = gr::version();
     qDebug() << "GNU Radio Version: " + ver;
     qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
@@ -42,15 +53,6 @@ OsmoDevice::OsmoDevice(QObject *parent):
     qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
     qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
 
-    // gattServer = GattServer::getInstance();
-    // if (gattServer)
-    // {
-    //     qDebug() << "Starting gatt service";
-    //     QObject::connect(gattServer, &GattServer::connectionState, this, &SdrDevice::onConnectionStatedChanged);
-    //     QObject::connect(gattServer, &GattServer::dataReceived, this, &SdrDevice::onDataReceived);
-    //     QObject::connect(gattServer, &GattServer::sendInfo, this, &SdrDevice::onInfoReceived);
-    //     gattServer->startBleService();
-    // }
 }
 
 OsmoDevice::~OsmoDevice()
@@ -122,6 +124,32 @@ void OsmoDevice::onDataReceived(QByteArray data)
 
     bool ok;
     int value =  parsedValue.toHex().toInt(&ok, 16);
+
+    if(rw == mWrite)
+    {
+        switch (parsedCommand)
+        {
+        case mData:
+        {
+            auto text = QString(parsedValue.data());
+            QStringList parts = text.split(',');
+
+            // Extract the command and value
+            QString command = parts.value(0);
+            QString valueString = parts.value(1);
+
+            // Convert the value string to uint64_t to handle large values
+            // bool conversionOkValue;
+            // auto value = valueString.toDouble(&conversionOkValue);
+            if (command == "set_ip") {
+                customAudioSink->connectToServer(valueString, 5001);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
 }
 
 void OsmoDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
@@ -195,13 +223,12 @@ void OsmoDevice::run()
         gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));
     // auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
-    auto custom_audio_sink = std::make_shared<CustomAudioSink>(audio_samp_rate, "audio_sink", true);
 
     tb->connect(hackrf_osmo_source, 0, resampler, 0);
     tb->connect(resampler, 0, quad_demod, 0);
     tb->connect(quad_demod, 0, low_pass_filter, 0);
     tb->connect(low_pass_filter, 0, multiply_const, 0);
-    tb->connect(multiply_const, 0, custom_audio_sink, 0);
+    tb->connect(multiply_const, 0, customAudioSink, 0);
     // tb->connect(multiply_const, 0, audio_sink, 0);
     tb->start();
 }

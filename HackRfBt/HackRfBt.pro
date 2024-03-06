@@ -30,7 +30,6 @@ HEADERS += \
     message.h \
     osmodevice.h \
     tcpclient.h \
-    topblock.h \
     udpclient.h
 
 

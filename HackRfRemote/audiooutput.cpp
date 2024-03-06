@@ -54,8 +54,8 @@ void AudioOutput::writeBuffer(const QByteArray &buffer)
 {   
     QMutexLocker locker(mutex);
     if (!m_abort)
-    {       
-        audioDevice->write(buffer.data(), buffer.size());
+    {
+        audioDevice->write(buffer);
     }
 }
 
