@@ -6,7 +6,6 @@ CustomAudioSink::CustomAudioSink(int sampling_rate, const std::string& device_na
                      gr::io_signature::make(0, 0, 0)),
     audioDevice(nullptr)
 {
-    // Initialize your Qt audio device (replace this with your actual initialization)
     // QAudioFormat format;
     // format.setSampleFormat(QAudioFormat::Float);
     // format.setSampleRate(sampling_rate);
@@ -27,7 +26,7 @@ CustomAudioSink::CustomAudioSink(int sampling_rate, const std::string& device_na
     // qDebug() << "Default Sound Device: " << outputDevice.description() << sampling_rate;
 
     // m_audioOutput.reset(new QAudioSink(outputDevice, format));
-    // m_audioOutput->setBufferSize(4098);
+    // m_audioOutput->setBufferSize(8192);
     // audioDevice = m_audioOutput->start();
 
     tcpClient = new TcpClient();
@@ -62,7 +61,6 @@ int CustomAudioSink::work(int noutput_items, gr_vector_const_void_star& input_it
     // Buffer the audio data
     QByteArray buffer(reinterpret_cast<const char*>(in), byte_size);
 
-    // Write the audio data to the Qt audio device
     // qint64 bytesWritten = audioDevice->write(buffer);
     // if (bytesWritten < 0) {
     //     qDebug() << "Error writing to audio device:" << audioDevice->errorString();
