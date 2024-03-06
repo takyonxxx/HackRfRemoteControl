@@ -126,11 +126,7 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
     }
     case BluetoothClient::AcquireData:
     {
-        setIp();
-        requestData(mGetFreq);
-        requestData(mGetFreqMod);
-        requestData(mGetDeMod);
-        requestData(mGetPtt);
+        setIp();       
         break;
     }
     case BluetoothClient::Error:
@@ -391,11 +387,15 @@ void MainWindow::getBuffer(QByteArray &buffer)
 
 void MainWindow::on_m_pReset_clicked()
 {
-    tcpServer->reset();
-    ui->m_textStatus->clear();    
-    ui->m_cFreqType->setCurrentIndex(2);
-    ui->m_cDemod->setCurrentIndex(1);
-    setRadioValues();
+    // tcpServer->reset();
+    // ui->m_textStatus->clear();
+    // ui->m_cFreqType->setCurrentIndex(2);
+    // ui->m_cDemod->setCurrentIndex(1);
+    // setRadioValues();
+    requestData(mGetFreq);
+    requestData(mGetFreqMod);
+    requestData(mGetDeMod);
+    requestData(mGetPtt);
 }
 
 void MainWindow::on_m_pIncFreq_clicked()

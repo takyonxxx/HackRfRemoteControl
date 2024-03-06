@@ -523,9 +523,7 @@ void HackRfManager::onDataReceived(QByteArray data)
             break;
         }
     }
-
 }
-
 
 void HackRfManager::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
 {
