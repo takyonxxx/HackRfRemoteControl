@@ -127,10 +127,10 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
     case BluetoothClient::AcquireData:
     {
         setIp();
-        requestData(mGetFreq);
-        requestData(mGetFreqMod);
-        requestData(mGetDeMod);
-        requestData(mGetPtt);
+        // requestData(mGetFreq);
+        // requestData(mGetFreqMod);
+        // requestData(mGetDeMod);
+        // requestData(mGetPtt);
         break;
     }
     case BluetoothClient::Error:
