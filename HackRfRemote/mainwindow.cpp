@@ -408,20 +408,20 @@ void MainWindow::on_m_pDecFreq_clicked()
 
 void MainWindow::on_m_cFreqType_currentIndexChanged(int index)
 {
-    int selectedIndex = ui->m_cFreqType->currentIndex();
-    if (selectedIndex >= 0 && selectedIndex < ui->m_cFreqType->count())
-    {
-        HackRfManager::FreqMod freqMod = static_cast<HackRfManager::FreqMod>(selectedIndex);
-        sendCommand(mSetFreqMod, static_cast<uint8_t>(freqMod));
-    }
+    // int selectedIndex = ui->m_cFreqType->currentIndex();
+    // if (selectedIndex >= 0 && selectedIndex < ui->m_cFreqType->count())
+    // {
+    //     HackRfManager::FreqMod freqMod = static_cast<HackRfManager::FreqMod>(selectedIndex);
+    //     sendCommand(mSetFreqMod, static_cast<uint8_t>(freqMod));
+    // }
 }
 
 void MainWindow::on_m_cDemod_currentIndexChanged(int index)
 {
-    if (index >= 0 && index < ui->m_cDemod->count())
-    {
-        HackRfManager::Demod demod = static_cast<HackRfManager::Demod>(index);
-        sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
-    }
+    // if (index >= 0 && index < ui->m_cDemod->count())
+    // {
+    //     HackRfManager::Demod demod = static_cast<HackRfManager::Demod>(index);
+    //     sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
+    // }
 }
 

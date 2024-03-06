@@ -104,9 +104,9 @@ void OsmoDevice::onConnectionStatedChanged(bool state)
     if(state)
     {
         qDebug() << "Bluetooth connection is succesfull.";
-        sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
-        sendCommand(mGetDeMod, static_cast<uint8_t>(currentDemod));
-        sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
+        // sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
+        // sendCommand(mGetDeMod, static_cast<uint8_t>(currentDemod));
+        // sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
     }
     else
     {
