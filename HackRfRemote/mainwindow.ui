@@ -172,31 +172,6 @@
               <string>WFM</string>
              </property>
             </item>
-            <item>
-             <property name="text">
-              <string>NFM</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>USB</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>LSB</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>CW</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>BPSK31</string>
-             </property>
-            </item>
            </widget>
           </item>
          </layout>

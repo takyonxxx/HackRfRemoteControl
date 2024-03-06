@@ -11,22 +11,15 @@ QMAKE_CXXFLAGS += -v
 QMAKE_ASSET_CATALOGS_BUILD_PATH = $$PWD
 
 SOURCES += \
-        audiootput.cpp \
         customaudiosink.cpp \
         gattserver.cpp \
-        hackrfmanager.cpp \
         main.cpp \
         message.cpp \
-        modulator.cpp \
         osmodevice.cpp
 
 HEADERS += \
-    IHackRFData.h \
-    audiootput.h \
     customaudiosink.h \
     gattserver.h \
-    hackrfmanager.h \
-    modulator.h \
     message.h \
     osmodevice.h \
     tcpclient.h \
@@ -38,21 +31,11 @@ macos {
     QMAKE_ASSET_CATALOGS = $$PWD/macos/Assets.xcassets
     QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
 
-    INCLUDEPATH += /opt/homebrew/opt/rtl-sdr/include
-    INCLUDEPATH += /opt/homebrew/Cellar/fftw/3.3.10_1/include
-    INCLUDEPATH += /opt/homebrew/Cellar/portaudio/19.7.0/include
-    INCLUDEPATH += /opt/homebrew/Cellar/hackrf/2023.01.1/include/libhackrf
     INCLUDEPATH += /opt/homebrew/Cellar/spdlog/1.12.0/include
     INCLUDEPATH += /opt/homebrew/Cellar/fmt/10.2.1/include
     INCLUDEPATH += /opt/homebrew/Cellar/gmp/6.3.0/include
-
-    LIBS += -L/opt/homebrew/opt/rtl-sdr/lib -lrtlsdr \
-        -L/opt/homebrew/Cellar/fftw/3.3.10_1/lib -lfftw3 \
-        -L/opt/homebrew/Cellar/portaudio/19.7.0/lib -lportaudio \
-        -L/opt/homebrew/Cellar/hackrf/2023.01.1/lib -lhackrf
-
     INCLUDEPATH += /opt/homebrew/Cellar/gnuradio/3.10.9.2_1/include
-    INCLUDEPATH += /opt/homebrew/Cellar/boost/1.84.0/include
+    INCLUDEPATH += /opt/homebrew/Cellar/boost/1.84.0_1/include
     INCLUDEPATH += /opt/homebrew/Cellar/soapysdr/0.8.1_1/include
 
     LIBS += -L/opt/homebrew/Cellar/gnuradio/3.10.9.2_1/lib \
@@ -66,7 +49,7 @@ macos {
         -lgnuradio-soapy \
         -lgnuradio-uhd
 
-    LIBS += -L/opt/homebrew/Cellar/boost//1.84.0/lib -lboost_system -lboost_filesystem-mt -lboost_program_options
+    LIBS += -L/opt/homebrew/Cellar/boost/1.84.0_1/lib -lboost_system -lboost_filesystem-mt -lboost_program_options
     LIBS += -L/opt/homebrew/Cellar/soapysdr/0.8.1_1/lib -lSoapySDR
 }
 
@@ -86,12 +69,12 @@ unix:!macx{
 #    sudo apt-get install libgl1-mesa-dev
 #    sudo apt-get install gr-osmosdr
 #    sudo apt-get install gnuradio
+#    nmap -sP 192.168.1.0/24
 
     INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include
     INCLUDEPATH += /usr/local/include
     INCLUDEPATH += /usr/local/lib
-    INCLUDEPATH += /usr/include/libhackrf
     INCLUDEPATH += /lib/x86_64-linux-gnu
     INCLUDEPATH += /usr/include/osmosdr
 
@@ -100,7 +83,7 @@ unix:!macx{
     -lboost_program_options
     -lboost_thread
 
-    LIBS += -lrt -lportaudio -lrtlsdr -lfftw3 -lhackrf -lpthread -losmosdr -lfmt
+    LIBS += -lrt -lportaudio -lpthread -losmosdr -lfmt
     LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr -lgnuradio-pmt
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
@@ -109,37 +92,7 @@ unix:!macx{
     # PRE_TARGETDEPS += /usr/lib/arm-linux-gnueabihf/libhackrf.a
 }
 
-ios {
-    QMAKE_INFO_PLIST = ./ios/Info.plist
-    QMAKE_ASSET_CATALOGS = $$PWD/ios/Assets.xcassets
-    QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
-}
-
-win32 {
-    message("Win32 enabled")
-    # RC_ICONS += $$\PWD\icons\hackrf.png
-
-    INCLUDEPATH += $$PWD\include\libhackrf
-    INCLUDEPATH += $$PWD\include\rtl-sdr
-    # INCLUDEPATH += $$PWD\libs\fftw3-3
-    INCLUDEPATH += $$PWD\libs\portaudio\include
-    # INCLUDEPATH += $$PWD\include\osmosdr
-    # INCLUDEPATH += $$PWD\include\soapysdr
-
-    LIBS += -L$$PWD\libs\rtl-sdr -lrtlsdr
-    LIBS += -L$$PWD\libs\hackrf -lhackrf
-    # LIBS += -L$$PWD\libs\fftw3-3 -llibfftw3-3
-    LIBS += -L$$PWD\libs\portaudio\lib\x64\Release -lportaudio_x64
-    # LIBS += -L$$PWD\libs\osmosdr -losmosdr
-    # LIBS += -L$$PWD\libs\soapysdr -lSoapyOsmoSDR
-
-}
-
-
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-DISTFILES += \
-    icons/hackrf.png
