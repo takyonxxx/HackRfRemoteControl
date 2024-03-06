@@ -31,6 +31,7 @@
 #define GHZ(x) ((uint64_t)(x) * 1000000000)
 #define MHZ(x) ((x) * 1000000)
 #define KHZ(x) ((x) * 1000)
+#define HZ(x) ((x) * 1)
 #define DEFAULT_SAMPLE_RATE             MHZ(20)
 #define DEFAULT_AUDIO_SAMPLE_RATE       KHZ(48)
 #define DEFAULT_CHANNEL_WIDTH           KHZ(300)
