@@ -469,16 +469,16 @@ void HackRfManager::onDataReceived(QByteArray data)
 
                 if (current_freq >= 1e9) {
                     currentFreqMod = FreqMod::GHZ;
-                    qDebug() << "Set frequency:" << current_freq / 1e9 << "GHz";
+                    qDebug() << "Current frequency:" << current_freq / 1e9 << "GHz";
                 } else if (current_freq >= 1e6) {
                     currentFreqMod = FreqMod::MHZ;
-                    qDebug() << "Set frequency:" << current_freq / 1e6 << "MHz";
+                    qDebug() << "Current frequency:" << current_freq / 1e6 << "MHz";
                 } else if (current_freq >= 1e3) {
                     currentFreqMod = FreqMod::KHZ;
-                    qDebug() << "Set frequency:" << current_freq / 1e3 << "KHz";
+                    qDebug() << "Current frequency:" << current_freq / 1e3 << "KHz";
                 } else {
                     currentFreqMod = FreqMod::HZ;
-                    qDebug() << "Set frequency:" << current_freq << "Hz";
+                    qDebug() << "Current frequency:" << current_freq << "Hz";
                 }
                 sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
             }

@@ -352,13 +352,15 @@ void MainWindow::setRadioValues()
     bool conversionOk;
 
     auto freq = text.toDouble(&conversionOk);
-    int selectedIndex = ui->m_cDemod->currentIndex();
-    // Check if the index is valid
-    if (selectedIndex >= 0 && selectedIndex < ui->m_cDemod->count())
-    {
-        HackRfManager::Demod demod = static_cast<HackRfManager::Demod>(selectedIndex);
-        sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
-    }
+
+    // int selectedIndex = ui->m_cDemod->currentIndex();
+
+    // // Check if the index is valid
+    // if (selectedIndex >= 0 && selectedIndex < ui->m_cDemod->count())
+    // {
+    //     HackRfManager::Demod demod = static_cast<HackRfManager::Demod>(selectedIndex);
+    //     sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
+    // }
 
     if (selectedText == "KHz") {
         freq = 1000 * freq;
