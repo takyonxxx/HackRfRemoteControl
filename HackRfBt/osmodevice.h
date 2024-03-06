@@ -11,7 +11,11 @@
 #include <gnuradio/top_block.h>
 #include <gnuradio/sync_block.h>
 #include <gnuradio/blocks/multiply_const.h>
+#ifdef __arm__
+#include <gnuradio/filter/rational_resampler_base.h>
+#else
 #include <gnuradio/filter/rational_resampler.h>
+#endif
 #include <gnuradio/audio/sink.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_blk.h>
@@ -67,7 +71,11 @@ private:
     GattServer *gattServer{};   
     Message message;
     gr::top_block_sptr tb;
+#ifdef __arm__
+    boost::shared_ptr<CustomAudioSink> customAudioSink;
+#else
     std::shared_ptr<CustomAudioSink> customAudioSink;
+#endif
 
     int sample_rate ;
     int audio_samp_rate;

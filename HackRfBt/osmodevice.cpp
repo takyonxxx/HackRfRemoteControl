@@ -31,8 +31,8 @@ OsmoDevice::OsmoDevice(QObject *parent):
     hackrf_osmo_source->set_antenna("", 0);
     hackrf_osmo_source->set_bandwidth(0, 0);
 
-    std::string ver = gr::version();
-    qDebug() << "GNU Radio Version: " + ver;
+    // std::string ver = gr::version();
+    // qDebug() << "GNU Radio Version: " + ver;
     qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
     qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
     qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
@@ -40,7 +40,12 @@ OsmoDevice::OsmoDevice(QObject *parent):
     qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
     qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
 
-    customAudioSink = std::make_shared<CustomAudioSink>(audio_samp_rate, "audio_sink", true);
+#ifdef __arm__
+    customAudioSink = boost::make_shared<CustomAudioSink>("audio_sink");
+#else
+    customAudioSink = std::make_shared<CustomAudioSink>("audio_sink");
+#endif
+
 
     gattServer = GattServer::getInstance();
     if (gattServer)
@@ -259,7 +264,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
                 sendString(mData, data);
             }
             else if (command == "set_ip") {
-//                customAudioSink->connectToServer(valueString, 5001);
+                customAudioSink->connectToServer(valueString, 5001);
             }
             break;
         }
@@ -368,11 +373,20 @@ void OsmoDevice::run()
 {
     tb = gr::make_top_block("HackRf");
 
+#ifdef __arm__
+    gr::filter::rational_resampler_base_ccf::sptr resampler = gr::filter::rational_resampler_base_ccf::make(interpolation, resampler_decimation, {});
+    auto low_pass_filter = gr::filter::fir_filter_fff::make(
+        6,
+        gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::filter::firdes::WIN_HAMMING, 6.76));
+
+#else
     gr::filter::rational_resampler_ccf::sptr resampler = gr::filter::rational_resampler_ccf::make(interpolation, resampler_decimation);
-    gr::analog::quadrature_demod_cf::sptr quad_demod = gr::analog::quadrature_demod_cf::make(1.0);
     auto low_pass_filter = gr::filter::fir_filter_fff::make(
         6,
         gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));
+
+#endif
+    gr::analog::quadrature_demod_cf::sptr quad_demod = gr::analog::quadrature_demod_cf::make(1.0);
     // auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
 
@@ -381,6 +395,5 @@ void OsmoDevice::run()
     tb->connect(quad_demod, 0, low_pass_filter, 0);
     tb->connect(low_pass_filter, 0, multiply_const, 0);
     tb->connect(multiply_const, 0, customAudioSink, 0);
-    // tb->connect(multiply_const, 0, audio_sink, 0);
     tb->start();
 }

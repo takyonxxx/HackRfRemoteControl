@@ -1,29 +1,25 @@
 #ifndef CUSTOMAUDIOSINK_H
 #define CUSTOMAUDIOSINK_H
-#include <QCoreApplication>
-#include <QAudioSink>
-#include <QMediaDevices>
-#include <QAudioFormat>
-#include <QAudioOutput>
 
 #include "tcpclient.h"
-
 #include <gnuradio/sync_block.h>
 
 class CustomAudioSink : public gr::sync_block
 {
 public:
+#ifdef __arm__
+    typedef boost::shared_ptr<CustomAudioSink> sptr;
+#else
     typedef std::shared_ptr<CustomAudioSink> sptr;
-    static sptr make(int sampling_rate, const std::string& device_name = "", bool ok_to_block = true);
+#endif
+    static sptr make(const std::string& device_name = "");
 
-    CustomAudioSink(int sampling_rate, const std::string& device_name, bool ok_to_block);
+    CustomAudioSink(const std::string& device_name);
     ~CustomAudioSink() override;
-
     void connectToServer(const QString &hostAddress, quint16 port);
-
 private:
-    QIODevice* audioDevice;
-    QScopedPointer<QAudioSink> m_audioOutput;
+    // QIODevice* audioDevice;
+    // QScopedPointer<QAudioSink> m_audioOutput;
     TcpClient *tcpClient{};
     int work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items) override;
 };

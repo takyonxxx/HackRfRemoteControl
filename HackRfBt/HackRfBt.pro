@@ -71,19 +71,16 @@ unix:!macx{
 #    sudo apt-get install gnuradio
 #    nmap -sP 192.168.1.0/24
 
-    INCLUDEPATH += /usr/lib
     INCLUDEPATH += /usr/include
     INCLUDEPATH += /usr/local/include
-    INCLUDEPATH += /usr/local/lib
-    INCLUDEPATH += /lib/x86_64-linux-gnu
     INCLUDEPATH += /usr/include/osmosdr
+    INCLUDEPATH += /usr/lib
+    INCLUDEPATH += /usr/local/lib
+    INCLUDEPATH += /usr/lib/x86_64-linux-gnu
+    # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
 
-    LIBS += -L/usr/local/lib \
-    -lboost_system
-    -lboost_program_options
-    -lboost_thread
-
-    LIBS += -lrt -lportaudio -lpthread -losmosdr -lfmt
+    LIBS += -lboost_system -lboost_program_options -lboost_thread
+    LIBS += -lrt -lportaudio -lpthread -losmosdr -lfmt -llog4cpp
     LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr -lgnuradio-pmt
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
