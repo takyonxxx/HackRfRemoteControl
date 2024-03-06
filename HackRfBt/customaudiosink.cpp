@@ -26,7 +26,7 @@ CustomAudioSink::CustomAudioSink(int sampling_rate, const std::string& device_na
     // qDebug() << "Default Sound Device: " << outputDevice.description() << sampling_rate;
 
     // m_audioOutput.reset(new QAudioSink(outputDevice, format));
-    // m_audioOutput->setBufferSize(8192);
+    // m_audioOutput->setBufferSize(4092);
     // audioDevice = m_audioOutput->start();
 
     tcpClient = new TcpClient();

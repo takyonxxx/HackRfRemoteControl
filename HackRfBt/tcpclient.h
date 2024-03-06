@@ -26,7 +26,7 @@ public slots:
     {
         if (socket->state() == QAbstractSocket::ConnectedState) {
             socket->write(data);
-            socket->flush();
+            // socket->flush();
         }
     }
 
