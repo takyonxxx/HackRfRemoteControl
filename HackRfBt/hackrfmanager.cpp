@@ -333,7 +333,7 @@ void HackRfManager::onDataReceived(QByteArray data)
     uint8_t parsedCommand;
     uint8_t rw;
     QByteArray parsedValue;
-    auto parsed = parseMessage(&data, parsedCommand, parsedValue, rw);
+    auto parsed = parseMessage(&data, parsedCommand, parsedValue, rw);    
 
     if(!parsed)return;
 
