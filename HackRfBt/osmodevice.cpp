@@ -32,6 +32,15 @@ OsmoDevice::OsmoDevice(QObject *parent):
     hackrf_osmo_source->set_antenna("", 0);
     hackrf_osmo_source->set_bandwidth(0, 0);
 
+    std::string ver = gr::version();
+    qDebug() << "GNU Radio Version: " + ver;
+    qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
+    qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
+    qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
+    qDebug() << "Actual RX Gain: " << hackrf_osmo_source->get_gain() << " dB...";
+    qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
+    qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
+
     customAudioSink = std::make_shared<CustomAudioSink>(audio_samp_rate, "audio_sink", true);
 
     gattServer = GattServer::getInstance();
@@ -43,16 +52,6 @@ OsmoDevice::OsmoDevice(QObject *parent):
         QObject::connect(gattServer, &GattServer::sendInfo, this, &OsmoDevice::onInfoReceived);
         gattServer->startBleService();
     }
-
-    std::string ver = gr::version();
-    qDebug() << "GNU Radio Version: " + ver;
-    qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
-    qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
-    qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
-    qDebug() << "Actual RX Gain: " << hackrf_osmo_source->get_gain() << " dB...";
-    qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
-    qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
-
 }
 
 OsmoDevice::~OsmoDevice()
