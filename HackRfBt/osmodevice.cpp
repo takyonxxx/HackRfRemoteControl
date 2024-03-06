@@ -5,15 +5,14 @@ OsmoDevice::OsmoDevice(QObject *parent):
 {
     sample_rate            = DEFAULT_SAMPLE_RATE;
     audio_samp_rate        = DEFAULT_AUDIO_SAMPLE_RATE;
-    center_freq            = DEFAULT_FREQUENCY;
+    currentFrequency       = DEFAULT_FREQUENCY;
     cut_off                = DEFAULT_CHANNEL_WIDTH;
     transition             = static_cast<int>(DEFAULT_CHANNEL_WIDTH / 12);
     decimation             = static_cast<int>(DEFAULT_SAMPLE_RATE/DEFAULT_CHANNEL_WIDTH);
     interpolation          = static_cast<int>(DEFAULT_SAMPLE_RATE / 1e6);
     resampler_decimation   = static_cast<int>(DEFAULT_SAMPLE_RATE * decimation / 1e6);
     audio_gain             = DEFAULT_AUDIO_GAIN;
-
-    currentFrequency = center_freq;
+    m_ptt                  = false;
 
     qDebug() << sample_rate << audio_samp_rate << audio_gain << cut_off << transition << decimation;
 
@@ -128,6 +127,98 @@ void OsmoDevice::onDataReceived(QByteArray data)
     {
         switch (parsedCommand)
         {
+        case mSetPtt:
+        {
+            if(value == 1)
+            {
+                m_ptt = true;
+                qDebug() << "Ptt On";
+            }
+            else
+            {
+                m_ptt = false;
+                qDebug() << "Ptt Off";
+            }
+
+            sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
+            break;
+        }
+        case mSetFreqMod:
+        {
+            if (value >= FreqMod::HZ && value <= FreqMod::GHZ)
+            {
+                FreqMod selectedFreqMod = static_cast<FreqMod>(value);
+                currentFreqMod = selectedFreqMod;
+                sendCommand(mGetFreqMod, static_cast<uint8_t>(selectedFreqMod));
+                qDebug() << "Current freq mod:" << currentFreqMod;
+            }
+            break;
+        }
+        case mSetDeMod:
+        {
+            if (value >= OsmoDevice::DEMOD_AM && value <= OsmoDevice::DEMOD_WFM)
+            {
+                OsmoDevice::Demod selectedDemod = static_cast<OsmoDevice::Demod>(value);
+                currentDemod = selectedDemod;
+                sendCommand(mGetDeMod, static_cast<uint8_t>(selectedDemod));
+                qDebug() << "Current demod:" << enumToString(static_cast<OsmoDevice::Demod>(currentDemod));
+            }
+            break;
+        }
+        case mIncFreq:
+        {
+            auto current_freq =  currentFrequency;
+            double increment = 1.0;
+
+            switch (currentFreqMod) {
+            case HZ:
+                // Do nothing, as the increment is in Hertz
+                break;
+            case KHZ:
+                increment *= 1e3; // Convert increment to Kilohertz
+                break;
+            case MHZ:
+                increment *= 1e6; // Convert increment to Megahertz
+                break;
+            case GHZ:
+                increment *= 1e9; // Convert increment to Gigahertz
+                break;
+            }
+            // Update the tuner frequency
+            setFrequency(current_freq + increment);
+            currentFrequency =  getCenterFrequency();
+            QString combinedText = QString("get_freq,%1").arg(current_freq);
+            QByteArray data = combinedText.toUtf8();
+            sendString(mData, data);
+            break;
+        }
+        case mDecFreq:
+        {
+            auto current_freq = currentFrequency;
+            double increment = 1.0;
+
+            switch (currentFreqMod) {
+            case HZ:
+                // Do nothing, as the increment is in Hertz
+                break;
+            case KHZ:
+                increment *= 1e3; // Convert increment to Kilohertz
+                break;
+            case MHZ:
+                increment *= 1e6; // Convert increment to Megahertz
+                break;
+            case GHZ:
+                increment *= 1e9; // Convert increment to Gigahertz
+                break;
+            }
+            // Update the tuner frequency
+            setFrequency(current_freq - increment);
+            currentFrequency =  getCenterFrequency();
+            QString combinedText = QString("get_freq,%1").arg(current_freq);
+            QByteArray data = combinedText.toUtf8();
+            sendString(mData, data);
+            break;
+        }
         case mData:
         {
             auto text = QString(parsedValue.data());
@@ -138,11 +229,65 @@ void OsmoDevice::onDataReceived(QByteArray data)
             QString valueString = parts.value(1);
 
             // Convert the value string to uint64_t to handle large values
-            // bool conversionOkValue;
-            // auto value = valueString.toDouble(&conversionOkValue);
-            if (command == "set_ip") {
+            bool conversionOkValue;
+            auto value = valueString.toDouble(&conversionOkValue);
+            if (command == "set_freq") {
+                setFrequency(value);
+                currentFrequency = getCenterFrequency();
+                auto current_freq =  currentFrequency;
+                QString combinedText = QString("get_freq,%1").arg(current_freq);
+                QByteArray data = combinedText.toUtf8();
+                sendString(mData, data);
+
+                if (current_freq >= 1e9) {
+                    currentFreqMod = FreqMod::GHZ;
+                    qDebug() << "Set frequency:" << current_freq / 1e9 << "GHz";
+                } else if (current_freq >= 1e6) {
+                    currentFreqMod = FreqMod::MHZ;
+                    qDebug() << "Set frequency:" << current_freq / 1e6 << "MHz";
+                } else if (current_freq >= 1e3) {
+                    currentFreqMod = FreqMod::KHZ;
+                    qDebug() << "Set frequency:" << current_freq / 1e3 << "KHz";
+                } else {
+                    currentFreqMod = FreqMod::HZ;
+                    qDebug() << "Set frequency:" << current_freq << "Hz";
+                }
+                sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
+            }
+            else if (command == "set_ip") {
                 customAudioSink->connectToServer(valueString, 5001);
             }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    else if(rw == mRead)
+    {
+        switch (parsedCommand)
+        {
+        case mGetFreq:
+        {
+            auto current_freq =  currentFrequency;
+            QString combinedText = QString("get_freq,%1").arg(current_freq);
+            QByteArray data = combinedText.toUtf8();
+            sendString(mData, data);
+            break;
+        }
+        case mGetFreqMod:
+        {
+            sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
+            break;
+        }
+        case mGetDeMod:
+        {
+            sendCommand(mGetDeMod, static_cast<uint8_t>(currentDemod));
+            break;
+        }
+        case mGetPtt:
+        {
+            sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
             break;
         }
         default:

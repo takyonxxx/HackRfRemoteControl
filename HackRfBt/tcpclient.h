@@ -1,5 +1,6 @@
 #ifndef TCPCLIENT_H
 #define TCPCLIENT_H
+#include <QObject>
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QByteArray>
@@ -19,15 +20,19 @@ public:
 public slots:
     void connectToServer(const QString &hostAddress, quint16 port)
     {
-        socket->connectToHost(QHostAddress(hostAddress), port);
+        QMetaObject::invokeMethod(this, [this, hostAddress, port]() {
+            socket->connectToHost(QHostAddress(hostAddress), port);
+        });
     }
 
     void sendData(const QByteArray &data)
     {
-        if (socket->state() == QAbstractSocket::ConnectedState) {
-            socket->write(data);
-            // socket->flush();
-        }
+        QMetaObject::invokeMethod(this, [this, data]() {
+            if (socket->state() == QAbstractSocket::ConnectedState) {
+                socket->write(data);
+                socket->flush();
+            }
+        });
     }
 
 private slots:

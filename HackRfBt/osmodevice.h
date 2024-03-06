@@ -71,6 +71,9 @@ private:
     int resampler_decimation;
     double audio_gain;
     double currentFrequency;
+    bool m_ptt;
+    Demod currentDemod;
+    FreqMod currentFreqMod;
 
     QString enumToString(OsmoDevice::Demod demod)
     {
