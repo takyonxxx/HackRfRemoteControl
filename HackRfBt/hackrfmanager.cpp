@@ -501,21 +501,22 @@ void HackRfManager::onDataReceived(QByteArray data)
             QString combinedText = QString("get_freq,%1").arg(current_freq);
             QByteArray data = combinedText.toUtf8();
             sendString(mData, data);
+            qDebug() << "Get freq:" << currentFrequency;
             break;
         }
-        case mGetFreqMod:
-        {
+        case mGetFreqMod:        {
             sendCommand(mGetFreqMod, static_cast<uint8_t>(currentFreqMod));
+            qDebug() << "Get freq mod:" << currentFreqMod;
             break;
         }
-        case mGetDeMod:
-        {
+        case mGetDeMod:        {
             sendCommand(mGetDeMod, static_cast<uint8_t>(currentDemod));
+            qDebug() << "Get demod:" << currentDemod;
             break;
         }
-        case mGetPtt:
-        {
+        case mGetPtt:        {
             sendCommand(mGetPtt, static_cast<uint8_t>(m_ptt));
+            qDebug() << "Get ptt:" << m_ptt;
             break;
         }
         default:
