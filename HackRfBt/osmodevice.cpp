@@ -40,12 +40,7 @@ OsmoDevice::OsmoDevice(QObject *parent):
     qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
     qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
 
-#ifdef __arm__
-    customAudioSink = boost::make_shared<CustomAudioSink>("audio_sink");
-#else
     customAudioSink = std::make_shared<CustomAudioSink>("audio_sink");
-#endif
-
 
     gattServer = GattServer::getInstance();
     if (gattServer)
@@ -156,7 +151,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
                 OsmoDevice::FreqMod selectedFreqMod = static_cast<OsmoDevice::FreqMod>(value);
                 currentFreqMod = selectedFreqMod;
                 sendCommand(mGetFreqMod, static_cast<uint8_t>(selectedFreqMod));
-                qDebug() << "Set freq mod:" << currentFreqMod;
+                qDebug() << "Set freq mod:" << enumFreqModToString(static_cast<OsmoDevice::FreqMod>(currentFreqMod));;
             }
             break;
         }
@@ -167,7 +162,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
                 OsmoDevice::Demod selectedDemod = static_cast<OsmoDevice::Demod>(value);
                 currentDemod = selectedDemod;
                 sendCommand(mGetDeMod, static_cast<uint8_t>(selectedDemod));
-                qDebug() << "Set demod:" << enumToString(static_cast<OsmoDevice::Demod>(currentDemod));
+                qDebug() << "Set demod:" << enumDemodToString(static_cast<OsmoDevice::Demod>(currentDemod));
             }
             break;
         }
@@ -189,7 +184,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
                 increment *= 1e9; // Convert increment to Gigahertz
                 break;
             }
-            qDebug() << "Inc freq:" << increment;
+            qDebug() << "Set frequency:" << currentFrequency << "Hz";
             // Update the tuner frequency
             setFrequency(currentFrequency + increment);
             currentFrequency =  getCenterFrequency();
@@ -216,7 +211,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
                 increment *= 1e9; // Convert increment to Gigahertz
                 break;
             }            
-            qDebug() << "Inc freq:" << increment;
+            qDebug() << "Set frequency:" << currentFrequency << "Hz";
             // Update the tuner frequency
             setFrequency(currentFrequency - increment);
             currentFrequency =  getCenterFrequency();
@@ -373,21 +368,13 @@ void OsmoDevice::run()
 {
     tb = gr::make_top_block("HackRf");
 
-#ifdef __arm__
-    gr::filter::rational_resampler_base_ccf::sptr resampler = gr::filter::rational_resampler_base_ccf::make(interpolation, resampler_decimation, {});
-    auto low_pass_filter = gr::filter::fir_filter_fff::make(
-        6,
-        gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::filter::firdes::WIN_HAMMING, 6.76));
-
-#else
     gr::filter::rational_resampler_ccf::sptr resampler = gr::filter::rational_resampler_ccf::make(interpolation, resampler_decimation);
     auto low_pass_filter = gr::filter::fir_filter_fff::make(
         6,
         gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));
 
-#endif
     gr::analog::quadrature_demod_cf::sptr quad_demod = gr::analog::quadrature_demod_cf::make(1.0);
-    // auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
+    //auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
 
     tb->connect(hackrf_osmo_source, 0, resampler, 0);

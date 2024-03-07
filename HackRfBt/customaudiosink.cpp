@@ -40,9 +40,5 @@ int CustomAudioSink::work(int noutput_items, gr_vector_const_void_star& input_it
 
 CustomAudioSink::sptr CustomAudioSink::make(const std::string& device_name)
 {
-#ifdef __arm__
-    return boost::make_shared<CustomAudioSink>(device_name);
-#else
     return std::make_shared<CustomAudioSink>(device_name);
-#endif
 }

@@ -11,11 +11,7 @@
 #include <gnuradio/top_block.h>
 #include <gnuradio/sync_block.h>
 #include <gnuradio/blocks/multiply_const.h>
-#ifdef __arm__
-#include <gnuradio/filter/rational_resampler_base.h>
-#else
 #include <gnuradio/filter/rational_resampler.h>
-#endif
 #include <gnuradio/audio/sink.h>
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_blk.h>
@@ -71,11 +67,7 @@ private:
     GattServer *gattServer{};   
     Message message;
     gr::top_block_sptr tb;
-#ifdef __arm__
-    boost::shared_ptr<CustomAudioSink> customAudioSink;
-#else
     std::shared_ptr<CustomAudioSink> customAudioSink;
-#endif
 
     int sample_rate ;
     int audio_samp_rate;
@@ -91,14 +83,31 @@ private:
     Demod currentDemod;
     FreqMod currentFreqMod;
 
-    QString enumToString(OsmoDevice::Demod demod)
+    QString enumDemodToString(OsmoDevice::Demod demod)
     {
         switch (demod)
         {
-        case OsmoDevice::DEMOD_AM:
+        case DEMOD_AM:
             return "AM";
-        case OsmoDevice::DEMOD_WFM:
+        case DEMOD_WFM:
             return "WFM";
+        default:
+            return "Unknown";
+        }
+    }
+
+    QString enumFreqModToString(OsmoDevice::FreqMod fmod)
+    {
+        switch (fmod)
+        {
+        case HZ:
+            return "Hz";
+        case KHZ:
+            return "KHz";
+        case MHZ:
+            return "MHz";
+        case GHZ:
+            return "GHz";
         default:
             return "Unknown";
         }

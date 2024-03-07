@@ -55,16 +55,18 @@ macos {
 
 unix:!macx{
     message("linux enabled")
+#    sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+#    sudo apt-get install qtmultimedia5-dev
+#    sudo apt install qtconnectivity5-dev
+
 #    sudo apt install libusb-1.0-0-dev
 #    sudo apt-get install -y fftw3-dev
 #    sudo apt install librtlsdr-dev
 #    sudo apt install libportaudio2
 #    sudo apt install portaudio19-dev
-#    sudo apt install sox
 #    sudo apt-get install libgl-dev
-#    sudo apt-get install qtmultimedia5-dev
 #    sudo apt-get install hackrf
-#    sudo apt-get install -y libhackrf-dev
+#    sudo apt-get install libhackrf-dev
 #    sudo apt-get install libosmosdr-dev
 #    sudo apt-get install libgl1-mesa-dev
 #    sudo apt-get install gr-osmosdr
@@ -80,7 +82,7 @@ unix:!macx{
     # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
 
     LIBS += -lboost_system -lboost_program_options -lboost_thread
-    LIBS += -lrt -lportaudio -lpthread -losmosdr -lfmt -llog4cpp
+    LIBS += -lrt -lpthread -losmosdr -lfmt -llog4cpp
     LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr -lgnuradio-pmt
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu

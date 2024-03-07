@@ -7,11 +7,7 @@
 class CustomAudioSink : public gr::sync_block
 {
 public:
-#ifdef __arm__
-    typedef boost::shared_ptr<CustomAudioSink> sptr;
-#else
     typedef std::shared_ptr<CustomAudioSink> sptr;
-#endif
     static sptr make(const std::string& device_name = "");
 
     CustomAudioSink(const std::string& device_name);

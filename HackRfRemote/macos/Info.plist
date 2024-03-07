@@ -17,7 +17,7 @@
         <key>NSPrincipalClass</key>
         <string>NSApplication</string>
         <key>NSBluetoothAlwaysUsageDescription</key>
-        <string>Esc Remote Controller wants to access your Bluetooth adapter</string>
+        <string>App wants to access your Bluetooth adapter</string>
         <key>NSSupportsAutomaticGraphicsSwitching</key>
         <true/>
 </dict>
