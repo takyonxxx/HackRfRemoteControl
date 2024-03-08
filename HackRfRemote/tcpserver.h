@@ -22,6 +22,8 @@ public:
     void setPtt(bool newPtt);
     void reset();
 
+    void setReadBufferSize(int newReadBufferSize);
+
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
@@ -35,13 +37,16 @@ signals:
     void sendBaud(QString);   
 
 private:
+    QTcpSocket *clientSocket{};
     AudioOutput *audioOutput{};
-    bool m_ptt;
+
     QByteArray partialData;
     qint64 totalReceivedDataSize = 0;
     qint64 totalBaud = 0;
     qint64 numberOfSamples = 0;
     qint64 lastUpdateTime = 0;
+    bool m_ptt;
+    int readBufferSize;
 };
 
 #endif // TCPSERVER_H

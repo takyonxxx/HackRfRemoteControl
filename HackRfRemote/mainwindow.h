@@ -56,6 +56,8 @@ private slots:
     void on_m_cFreqType_currentIndexChanged(int index);
     void on_m_cDemod_currentIndexChanged(int index);
 
+    void on_hsb_ReadBuffer_valueChanged(int value);
+
 signals:
     void connectToDevice(int i);
 

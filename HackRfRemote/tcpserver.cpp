@@ -4,6 +4,7 @@
 TcpServer::TcpServer(QObject *parent):
      QTcpServer(parent)
 {
+    readBufferSize = 50;
     audioOutput = new AudioOutput(this, DEFAULT_SAMPLE_RATE);
 }
 
@@ -18,9 +19,9 @@ void TcpServer::setPtt(bool newPtt)
 
 void TcpServer::incomingConnection(qintptr socketDescriptor)
 {
-    QTcpSocket *clientSocket = new QTcpSocket(this);
+    clientSocket = new QTcpSocket(this);
     clientSocket->setSocketDescriptor(socketDescriptor);
-    clientSocket->setReadBufferSize(1024*4);
+    clientSocket->setReadBufferSize(1024*readBufferSize);
 
     connect(clientSocket, &QTcpSocket::readyRead, this, &TcpServer::onReadyRead);
     connect(clientSocket, &QTcpSocket::disconnected, clientSocket, &QTcpSocket::deleteLater);
@@ -29,10 +30,10 @@ void TcpServer::incomingConnection(qintptr socketDescriptor)
 void TcpServer::onReadyRead()
 {
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket*>(sender());
-    if (clientSocket && clientSocket->bytesAvailable() > 0 && !m_ptt) {
+    if (clientSocket && clientSocket->bytesAvailable() > 0) {
         qint64 dataSize = clientSocket->bytesAvailable();
         QByteArray data = clientSocket->read(dataSize);
-        if (audioOutput && !data.isEmpty()) {
+        if (!m_ptt && audioOutput && !data.isEmpty()) {
             audioOutput->writeBuffer(data);
             totalReceivedDataSize += dataSize;
             double totalReceivedDataMB = static_cast<double>(totalReceivedDataSize) / (1024 * 1024);
@@ -69,6 +70,12 @@ void TcpServer::calculateAndEmitAverageBaud(qint64 dataSize, qint64 currentTime)
     lastUpdateTime = currentTime;
 }
 
+void TcpServer::setReadBufferSize(int newReadBufferSize)
+{
+    readBufferSize = newReadBufferSize;
+    clientSocket->setReadBufferSize(1024*readBufferSize);
+}
+
 QString TcpServer::getServerIpAddress()
 {
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
@@ -100,4 +107,5 @@ void TcpServer::reset()
     totalBaud = 0;
     numberOfSamples = 0;
     lastUpdateTime = 0;
+    m_ptt = false;
 }

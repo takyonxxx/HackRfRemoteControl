@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->m_cDemod->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_cFreqStep->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_lEditFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #900C3F;");
+    ui->hsb_ReadBuffer->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #0E8092;");
 
     ui->m_pIncFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #0E8092;");
     ui->m_pDecFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #0E8092;");
@@ -209,8 +210,19 @@ void MainWindow::DataHandler(QByteArray data)
         case mGetPtt:
             if (parsedValue.size() == 1)
             {
-                bool pttValue = (parsedValue.at(0) != 0);                    
+                bool pttValue = (parsedValue.at(0) != 0);
+
                 tcpServer->setPtt(pttValue);
+                if (pttValue)
+                {
+                    qDebug() << "Ptt On";
+                    ui->m_pBSpeak->setText("Ptt Off");
+                }
+                else
+                {
+                    qDebug() << "Ptt Off";
+                    ui->m_pBSpeak->setText("Ptt On");
+                }
             }
             break;        
         case mGetDeMod:
@@ -326,12 +338,12 @@ void MainWindow::on_m_pBSpeak_clicked()
     if (ui->m_pBSpeak->text() == "Ptt Off")
     {
         ui->m_pBSpeak->setText("Ptt On");
-        sendCommand(mSetPtt, static_cast<uint8_t>(1));
+        sendCommand(mSetPtt, static_cast<uint8_t>(0));
     }
     else
     {
         ui->m_pBSpeak->setText("Ptt Off");
-        sendCommand(mSetPtt, static_cast<uint8_t>(0));
+        sendCommand(mSetPtt, static_cast<uint8_t>(1));
     }
 }
 
@@ -418,5 +430,11 @@ void MainWindow::on_m_cDemod_currentIndexChanged(int index)
         Demod demod = static_cast<Demod>(index);
         sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
     }
+}
+
+
+void MainWindow::on_hsb_ReadBuffer_valueChanged(int value)
+{
+    tcpServer->setReadBufferSize(value);
 }
 

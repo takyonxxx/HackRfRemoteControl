@@ -22,7 +22,7 @@ AudioOutput::AudioOutput(QObject *parent, int sampleFormat):
     m_format.setChannelCount(1);
 
     m_audioOutput.reset(new QAudioSink(outputDevice, m_format));
-    m_audioOutput->setBufferSize(1024 * 128);
+    m_audioOutput->setBufferSize(1024 * 512);
     audioDevice = m_audioOutput->start();
 
     mutex = new QMutex;
