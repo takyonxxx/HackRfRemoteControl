@@ -2,23 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-        <key>CFBundleExecutable</key>
-        <string>${EXECUTABLE_NAME}</string>
-        <key>CFBundleIconFile</key>
-        <string></string>
-        <key>CFBundleIdentifier</key>
-        <string>${PRODUCT_BUNDLE_IDENTIFIER}</string>
-        <key>CFBundlePackageType</key>
-        <string>APPL</string>
-        <key>CFBundleSignature</key>
-        <string>????</string>
-        <key>LSMinimumSystemVersion</key>
-        <string>${MACOSX_DEPLOYMENT_TARGET}</string>
-        <key>NSPrincipalClass</key>
-        <string>NSApplication</string>
-        <key>NSBluetoothAlwaysUsageDescription</key>
-        <string>App wants to access your Bluetooth adapter</string>
-        <key>NSSupportsAutomaticGraphicsSwitching</key>
-        <true/>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>$(IPHONEOS_DEPLOYMENT_TARGET)</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Explanation of how the app uses Bluetooth data.</string>
+    <key>NSPrincipalClass</key>
+    <string>UIApplication</string>
 </dict>
 </plist>

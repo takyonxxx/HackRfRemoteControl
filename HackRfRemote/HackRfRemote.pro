@@ -2,8 +2,6 @@ QT += bluetooth multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-win32:RC_ICONS += $$\PWD\icons\robot.png
-
 TARGET = HacRfRemote
 TEMPLATE = app
 

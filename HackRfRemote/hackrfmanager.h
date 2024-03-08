@@ -42,9 +42,9 @@ public:
     static int getSamplingBytes(Demod demod) {
         switch (demod) {
         case DEMOD_AM:
-            return 842;
+            return 1024;
         case DEMOD_WFM:
-            return 2428;       
+            return 4196;
         default:
             return -1;
         }

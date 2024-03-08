@@ -427,10 +427,9 @@ void MainWindow::on_m_cFreqType_currentIndexChanged(int index)
     if(!m_connected)
         return;
 
-    int selectedIndex = ui->m_cFreqType->currentIndex();
-    if (selectedIndex >= 0 && selectedIndex < ui->m_cFreqType->count())
+    if (index >= 0 && index < ui->m_cFreqType->count())
     {
-        HackRfManager::FreqMod freqMod = static_cast<HackRfManager::FreqMod>(selectedIndex);
+        HackRfManager::FreqMod freqMod = static_cast<HackRfManager::FreqMod>(index);
         sendCommand(mSetFreqMod, static_cast<uint8_t>(freqMod));
     }
 }
