@@ -30,13 +30,10 @@ private:
 
     QMutex *mutex{};
     bool m_abort {false};
-    QQueue<QByteArray> *queue{};
 
     QAudioFormat m_format;
     QScopedPointer<QAudioSink> m_audioOutput;
     QIODevice *audioDevice;
-    QQueue<QByteArray> m_audioQueue;
-    QMutex m_mutex;
 };
 
 #endif // AUIOOUTPUTTHREAD_H

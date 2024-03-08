@@ -26,15 +26,27 @@
 
 
 
-#define GHZ(x) ((uint64_t)(x) * 1000000000)
-#define MHZ(x) ((x) * 1000000)
-#define KHZ(x) ((x) * 1000)
-#define HZ(x) ((x) * 1)
-#define DEFAULT_SAMPLE_RATE             MHZ(20)
-#define DEFAULT_AUDIO_SAMPLE_RATE       KHZ(48)
-#define DEFAULT_CHANNEL_WIDTH           KHZ(300)
-#define DEFAULT_FREQUENCY               MHZ(100)
+#define _GHZ(x) ((uint64_t)(x) * 1000000000)
+#define _MHZ(x) ((x) * 1000000)
+#define _KHZ(x) ((x) * 1000)
+#define _HZ(x) ((x) * 1)
+#define DEFAULT_SAMPLE_RATE             _MHZ(20)
+#define DEFAULT_AUDIO_SAMPLE_RATE       _KHZ(48)
+#define DEFAULT_CHANNEL_WIDTH           _KHZ(300)
+#define DEFAULT_FREQUENCY               _MHZ(100)
 #define DEFAULT_AUDIO_GAIN              1.0
+
+typedef enum {
+    DEMOD_AM,
+    DEMOD_WFM
+} Demod;
+
+typedef enum {
+    HZ,
+    KHZ,
+    MHZ,
+    GHZ
+} FreqMod;
 
 class OsmoDevice : public QThread
 {
@@ -48,18 +60,6 @@ public:
     void setSampleRate(double sampleRate);
     double getSampleRate();
     void setGain(double gain);
-
-    typedef enum {
-        DEMOD_AM,
-        DEMOD_WFM
-    } Demod;
-
-    typedef enum {
-        HZ,
-        KHZ,
-        MHZ,
-        GHZ
-    } FreqMod;
 
 private:
 
@@ -83,7 +83,7 @@ private:
     Demod currentDemod;
     FreqMod currentFreqMod;
 
-    QString enumDemodToString(OsmoDevice::Demod demod)
+    QString enumDemodToString(Demod demod)
     {
         switch (demod)
         {
@@ -96,7 +96,7 @@ private:
         }
     }
 
-    QString enumFreqModToString(OsmoDevice::FreqMod fmod)
+    QString enumFreqModToString(FreqMod fmod)
     {
         switch (fmod)
         {

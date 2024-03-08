@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->m_pBSetFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_cFreqType->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_cDemod->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
+    ui->m_cFreqStep->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_lEditFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #900C3F;");
 
     ui->m_pIncFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #0E8092;");
@@ -32,8 +33,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->freqCtrl->SetDigitColor(QColor("#FFC300"));
     ui->freqCtrl->SetFrequency(DEFAULT_FREQUENCY);
 
-    currentDemod    = HackRfManager::Demod::DEMOD_WFM;
-    currentFreqMod  = HackRfManager::FreqMod::MHZ;
+    ui->m_cFreqStep->addItem("1", QVariant(1));
+    ui->m_cFreqStep->addItem("5", QVariant(5));
+    ui->m_cFreqStep->addItem("10", QVariant(10));
+    ui->m_cFreqStep->addItem("50", QVariant(50));
+    ui->m_cFreqStep->addItem("100", QVariant(100));
+
+    currentDemod    = DEMOD_WFM;
+    currentFreqMod  = MHZ;
 
     ui->m_cFreqType->setCurrentIndex(2);
     ui->m_cDemod->setCurrentIndex(1);
@@ -46,26 +53,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_bleConnection, &BluetoothClient::sendBaud, this, &MainWindow::getBaud);
     connect(m_bleConnection, &BluetoothClient::newData, this, &MainWindow::DataHandler);    
 
-    hackRfManager = new HackRfManager(this);
-    connect(hackRfManager, &HackRfManager::sendInfo, this, &MainWindow::getDataReceived);
-    hackRfManager->setDemod(currentDemod);
-    hackRfManager->start();    
-
     connect(ui->m_pBConnect, SIGNAL(clicked()),this, SLOT(on_ConnectClicked()));
     connect(ui->m_pBExit, SIGNAL(clicked()),this, SLOT(on_Exit()));
 }
 
 MainWindow::~MainWindow()
 {
-    if (hackRfManager) {
-        hackRfManager->setStop(true);
-        hackRfManager->wait();
-        delete hackRfManager;
-    }
-    if (udpServer) {
-    delete udpServer;
-    }
-
     if (tcpServer) {
     delete tcpServer;
     }
@@ -101,10 +94,9 @@ void MainWindow::changedState(BluetoothClient::bluetoothleState state){
         if (!tcpServer->listen(QHostAddress::Any, 5001)) {
             qDebug() << "Tcp Server could not start. " << tcpServer->errorString();
         }
-        connect(tcpServer, &TcpServer::sendBuffer, this, &MainWindow::getBuffer);
+
         connect(tcpServer, &TcpServer::sendInfo, this, &MainWindow::getDataReceived);
         connect(tcpServer, &TcpServer::sendBaud, this, &MainWindow::getBaud);
-        tcpServer->setDemod(currentDemod);
 
         qDebug() << "Tcp Server listening on port 5001";
         getInfo("Tcp Server listening on port 5001");
@@ -218,21 +210,19 @@ void MainWindow::DataHandler(QByteArray data)
             if (parsedValue.size() == 1)
             {
                 bool pttValue = (parsedValue.at(0) != 0);                    
-                hackRfManager->setPtt(pttValue);
+                tcpServer->setPtt(pttValue);
             }
             break;        
         case mGetDeMod:
             {
-                HackRfManager::Demod selectedDemod = static_cast<HackRfManager::Demod>(value);
+                Demod selectedDemod = static_cast<Demod>(value);
                 ui->m_cDemod->setCurrentIndex(selectedDemod);
                 currentDemod = selectedDemod;
-                hackRfManager->setDemod(currentDemod);
-                tcpServer->setDemod(currentDemod);                
             }
             break;
         case mGetFreqMod:
         {
-                HackRfManager::FreqMod selectedFreqDemod = static_cast<HackRfManager::FreqMod>(value);
+                FreqMod selectedFreqDemod = static_cast<FreqMod>(value);
                 ui->m_cFreqType->setCurrentIndex(selectedFreqDemod);
                 currentFreqMod = selectedFreqDemod;
         }
@@ -355,11 +345,11 @@ void MainWindow::on_m_pBSetFreq_clicked()
 
     auto freq = freq_text.toDouble(&conversionOk);
 
-    if (currentFreqMod == HackRfManager::FreqMod::KHZ) {
+    if (currentFreqMod == FreqMod::KHZ) {
         freq = 1000 * freq;
-    } else if (currentFreqMod == HackRfManager::FreqMod::MHZ) {
+    } else if (currentFreqMod == FreqMod::MHZ) {
         freq = 1000 * 1000 * freq;
-    }else if (currentFreqMod == HackRfManager::FreqMod::GHZ) {
+    }else if (currentFreqMod == FreqMod::GHZ) {
         freq = 1000 * 1000 * 1000 * freq;
     }
 
@@ -376,34 +366,10 @@ void MainWindow::setIp()
     sendString(mData, data);
 }
 
-void MainWindow::getBuffer(QByteArray &buffer)
-{
-   if(hackRfManager && m_connected)
-        hackRfManager->setBuffer(buffer);
-}
-
 void MainWindow::on_m_pReset_clicked()
 {
      tcpServer->reset();
      ui->m_textStatus->clear();
-
-     ui->m_cFreqType->setCurrentIndex(2);
-     ui->m_cDemod->setCurrentIndex(1);
-
-     if(!m_connected)
-        return;
-
-     auto freq = 100;
-     if (currentFreqMod == HackRfManager::FreqMod::KHZ) {
-        freq = 1000 * freq;
-     } else if (currentFreqMod == HackRfManager::FreqMod::MHZ) {
-        freq = 1000 * 1000 * freq;
-     }else if (currentFreqMod == HackRfManager::FreqMod::GHZ) {
-        freq = 1000 * 1000 * 1000 * freq;
-     }
-     QString combinedText = QString("set_freq,%1").arg(freq);
-     QByteArray data = combinedText.toUtf8();
-     sendString(mData, data);
 }
 
 void MainWindow::on_m_pIncFreq_clicked()
@@ -411,7 +377,11 @@ void MainWindow::on_m_pIncFreq_clicked()
      if(!m_connected)
         return;
 
-    sendCommand(mIncFreq, static_cast<uint8_t>(1));
+    int selectedIndex = ui->m_cFreqStep->currentIndex();
+
+    QVariant selectedValue = ui->m_cFreqStep->itemData(selectedIndex);
+    int selectedIntValue = selectedValue.toInt();
+    sendCommand(mIncFreq, static_cast<uint8_t>(selectedIntValue));
 }
 
 void MainWindow::on_m_pDecFreq_clicked()
@@ -419,7 +389,11 @@ void MainWindow::on_m_pDecFreq_clicked()
     if(!m_connected)
         return;
 
-    sendCommand(mDecFreq, static_cast<uint8_t>(1));
+    int selectedIndex = ui->m_cFreqStep->currentIndex();
+
+    QVariant selectedValue = ui->m_cFreqStep->itemData(selectedIndex);
+    int selectedIntValue = selectedValue.toInt();
+    sendCommand(mDecFreq, static_cast<uint8_t>(selectedIntValue));
 }
 
 void MainWindow::on_m_cFreqType_currentIndexChanged(int index)
@@ -429,7 +403,7 @@ void MainWindow::on_m_cFreqType_currentIndexChanged(int index)
 
     if (index >= 0 && index < ui->m_cFreqType->count())
     {
-        HackRfManager::FreqMod freqMod = static_cast<HackRfManager::FreqMod>(index);
+        FreqMod freqMod = static_cast<FreqMod>(index);
         sendCommand(mSetFreqMod, static_cast<uint8_t>(freqMod));
     }
 }
@@ -441,7 +415,7 @@ void MainWindow::on_m_cDemod_currentIndexChanged(int index)
 
     if (index >= 0 && index < ui->m_cDemod->count())
     {
-        HackRfManager::Demod demod = static_cast<HackRfManager::Demod>(index);
+        Demod demod = static_cast<Demod>(index);
         sendCommand(mSetDeMod, static_cast<uint8_t>(demod));
     }
 }

@@ -27,14 +27,13 @@ int CustomAudioSink::work(int noutput_items, gr_vector_const_void_star& input_it
     const float* in = (const float*)input_items[0];
     size_t byte_size = noutput_items * sizeof(float);
     // Buffer the audio data
-    QByteArray buffer(reinterpret_cast<const char*>(in), byte_size);   
+    QByteArray buffer(reinterpret_cast<const char*>(in), byte_size);
 
     if(tcpClient)
     {
         tcpClient->sendData(buffer);
     }
 
-    // return bytesWritten / sizeof(float);
     return noutput_items;
 }
 

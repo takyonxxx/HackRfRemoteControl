@@ -6,7 +6,8 @@
 #include <QByteArray>
 #include <QDateTime>
 #include <QNetworkInterface>
-#include "hackrfmanager.h"
+
+#include "audiooutput.h"
 
 class TcpServer : public QTcpServer
 {
@@ -14,11 +15,12 @@ class TcpServer : public QTcpServer
 
 public:
     TcpServer(QObject *parent = nullptr);
+    ~TcpServer();
 
     QString getServerIpAddress();
-     void reset();
 
-    void setDemod(HackRfManager::Demod newDemod);
+    void setPtt(bool newPtt);
+    void reset();
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
@@ -33,8 +35,9 @@ signals:
     void sendBaud(QString);   
 
 private:
+    AudioOutput *audioOutput{};
+    bool m_ptt;
     QByteArray partialData;
-    HackRfManager::Demod currentDemod;
     qint64 totalReceivedDataSize = 0;
     qint64 totalBaud = 0;
     qint64 numberOfSamples = 0;

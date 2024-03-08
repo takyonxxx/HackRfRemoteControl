@@ -15,9 +15,9 @@
 #include <qregularexpression.h>
 #include "message.h"
 #include "bluetoothclient.h"
-#include "hackrfmanager.h"
 #include "udpserver.h"
 #include "tcpserver.h"
+#include "constants.h"
 
 #if defined (Q_OS_ANDROID)
 const QVector<QString> permissions({"android.permission.BLUETOOTH",
@@ -49,8 +49,7 @@ private slots:
     void on_Exit();
     void on_m_pBSpeak_clicked();
     void on_m_pBSetFreq_clicked();
-    void setIp();
-    void getBuffer(QByteArray &buffer);
+    void setIp();    
     void on_m_pReset_clicked();
     void on_m_pIncFreq_clicked();
     void on_m_pDecFreq_clicked();
@@ -67,13 +66,12 @@ private:
 
     QList<QString> m_qlFoundDevices;
     BluetoothClient *m_bleConnection{};
-    HackRfManager *hackRfManager{};
     UdpServer *udpServer{};
     TcpServer *tcpServer{};
     bool m_connected{};
     Message message;
-    HackRfManager::FreqMod currentFreqMod;
-    HackRfManager::Demod currentDemod;
+    FreqMod currentFreqMod;
+    Demod currentDemod;
 
     float               *d_realFftData;
     float               *d_iirFftData;

@@ -8,7 +8,6 @@ TEMPLATE = app
 SOURCES += main.cpp\
     audiooutput.cpp \
     freqctrl.cpp \
-    hackrfmanager.cpp \
         mainwindow.cpp \
     deviceinfo.cpp \
     message.cpp \
@@ -18,9 +17,9 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     audiooutput.h \
+    constants.h \
     deviceinfo.h \
     freqctrl.h \
-    hackrfmanager.h \
     message.h \
     bluetoothclient.h \
     tcpserver.h \

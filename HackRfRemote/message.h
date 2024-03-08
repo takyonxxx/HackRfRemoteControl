@@ -39,7 +39,6 @@ typedef struct {
     uint32_t data32;
 } MessagePack;
 
-
 class Message
 {
 public:

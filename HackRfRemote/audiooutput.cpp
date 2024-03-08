@@ -22,9 +22,10 @@ AudioOutput::AudioOutput(QObject *parent, int sampleFormat):
     m_format.setChannelCount(1);
 
     m_audioOutput.reset(new QAudioSink(outputDevice, m_format));
-    m_audioOutput->setBufferSize(4092);
+    m_audioOutput->setBufferSize(1024 * 128);
     audioDevice = m_audioOutput->start();
-    queue = new QQueue<QByteArray>();
+
+    mutex = new QMutex;
 
     qDebug() << "Default Sound Device: " << outputDevice.description();
 }
@@ -34,7 +35,6 @@ AudioOutput::~AudioOutput()
     if (audioDevice) {
         audioDevice->close();
     }
-    delete queue;
     delete mutex;
 }
 
@@ -52,8 +52,9 @@ void AudioOutput::stop()
 
 void AudioOutput::writeBuffer(const QByteArray &buffer)
 {
-    if (!m_abort)
+    if (!m_abort && audioDevice && audioDevice->isOpen())
     {
+        QMutexLocker locker(mutex);
         audioDevice->write(buffer);
     }
 }

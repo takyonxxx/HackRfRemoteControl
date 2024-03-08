@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>385</width>
-    <height>455</height>
+    <width>370</width>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,7 +43,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>0</height>
+            <height>60</height>
            </size>
           </property>
           <property name="toolTip">
@@ -122,11 +122,18 @@
         </item>
         <item row="7" column="0">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="0">
-           <widget class="QLineEdit" name="m_lEditFreq">
-            <property name="text">
-             <string>100.00</string>
-            </property>
+          <item row="2" column="2">
+           <widget class="QComboBox" name="m_cDemod">
+            <item>
+             <property name="text">
+              <string>AM</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>WFM</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item row="2" column="0">
@@ -153,25 +160,21 @@
             </item>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="m_pBSetFreq">
+          <item row="0" column="0">
+           <widget class="QLineEdit" name="m_lEditFreq">
             <property name="text">
-             <string>Set Freq</string>
+             <string>100.00</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QComboBox" name="m_cDemod">
-            <item>
-             <property name="text">
-              <string>AM</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>WFM</string>
-             </property>
-            </item>
+           <widget class="QComboBox" name="m_cFreqStep"/>
+          </item>
+          <item row="0" column="1" colspan="2">
+           <widget class="QPushButton" name="m_pBSetFreq">
+            <property name="text">
+             <string>Set Freq</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -241,14 +244,6 @@
      </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

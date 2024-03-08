@@ -14,8 +14,6 @@ public:
     ~CustomAudioSink() override;
     void connectToServer(const QString &hostAddress, quint16 port);
 private:
-    // QIODevice* audioDevice;
-    // QScopedPointer<QAudioSink> m_audioOutput;
     TcpClient *tcpClient{};
     int work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items) override;
 };
