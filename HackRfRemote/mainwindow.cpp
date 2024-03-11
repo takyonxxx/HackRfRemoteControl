@@ -9,17 +9,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     initButtons();
-    setWindowTitle(tr("BalanceRobot Remote Control"));
+    setWindowTitle(tr("HackRf Remote Control"));
 
     ui->m_textStatus->setStyleSheet("font-size: 12pt; color: #cccccc; background-color: #003333;");
     ui->labelDataReceived->setStyleSheet("font-size: 24pt; color: #ffffff; background-color: #250A04;");
     ui->labelBaud->setStyleSheet("font-size: 24pt; color: #ffffff; background-color: #250A04;");
 
-    ui->m_pBConnect->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #097532;");
-    ui->m_pReset->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #097532;");
-    ui->m_pBExit->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #097532;");
-    ui->m_pBSpeak->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #900C3F;");
-    ui->m_pBSetFreq->setStyleSheet("font-size: 24pt; font: bold; color: #ffffff; background-color: #900C3F;");
+    ui->m_pBConnect->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #097532;");
+    ui->m_pReset->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #097532;");
+    ui->m_pBExit->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #097532;");
+    ui->m_pBSpeak->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
+    ui->m_pBSetFreq->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_cFreqType->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_cDemod->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");
     ui->m_cFreqStep->setStyleSheet("font-size: 18pt; font: bold; color: #ffffff; background-color: #900C3F;");

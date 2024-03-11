@@ -6,33 +6,78 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>370</width>
-    <height>517</height>
+    <width>395</width>
+    <height>535</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QPushButton" name="m_pBConnect">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>40</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Connect</string>
-        </property>
-       </widget>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="8" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QComboBox" name="m_cFreqType">
+          <item>
+           <property name="text">
+            <string>Hz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>KHz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MHz</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>GHz</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="m_cFreqStep"/>
+        </item>
+        <item>
+         <widget class="QComboBox" name="m_cDemod">
+          <item>
+           <property name="text">
+            <string>AM</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>WFM</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="1" column="0">
+      <item row="6" column="0">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QPushButton" name="m_pBConnect">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Connect</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="labelDataReceived">
           <property name="text">
            <string>-</string>
@@ -42,76 +87,39 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <layout class="QGridLayout" name="gridLayout_3">
-          <item row="2" column="2">
-           <widget class="QComboBox" name="m_cDemod">
-            <item>
-             <property name="text">
-              <string>AM</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>WFM</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QComboBox" name="m_cFreqType">
-            <item>
-             <property name="text">
-              <string>Hz</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>KHz</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>MHz</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>GHz</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLineEdit" name="m_lEditFreq">
-            <property name="text">
-             <string>100.00</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="m_cFreqStep"/>
-          </item>
-          <item row="0" column="1" colspan="2">
-           <widget class="QPushButton" name="m_pBSetFreq">
-            <property name="text">
-             <string>Set Freq</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="3" column="0">
-         <widget class="QTextBrowser" name="m_textStatus">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
+        <item>
+         <widget class="QLabel" name="labelBaud">
+          <property name="text">
+           <string>-</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
+        <item>
+         <widget class="QScrollBar" name="hsb_ReadBuffer">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>25</height>
+           </size>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>50</number>
+          </property>
+          <property name="value">
+           <number>4</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="CFreqCtrl" name="freqCtrl">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -136,31 +144,39 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QScrollBar" name="hsb_ReadBuffer">
-          <property name="minimumSize">
+        <item>
+         <widget class="QTextBrowser" name="m_textStatus">
+          <property name="maximumSize">
            <size>
-            <width>0</width>
-            <height>25</height>
+            <width>16777215</width>
+            <height>16777215</height>
            </size>
-          </property>
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>50</number>
-          </property>
-          <property name="value">
-           <number>4</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="1">
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="m_pDecFreq">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="m_pBSpeak">
             <property name="minimumSize">
              <size>
@@ -179,14 +195,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="m_pDecFreq">
-            <property name="text">
-             <string>-</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
+          <item>
            <widget class="QPushButton" name="m_pIncFreq">
             <property name="text">
              <string>+</string>
@@ -195,47 +204,74 @@
           </item>
          </layout>
         </item>
-        <item row="7" column="0">
-         <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QPushButton" name="m_pReset">
-            <property name="text">
-             <string>Reset</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="m_pBExit">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Exit</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="labelBaud">
+       </layout>
+      </item>
+      <item row="10" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="m_pReset">
           <property name="text">
-           <string>-</string>
+           <string>Reset</string>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_pBExit">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Exit</string>
           </property>
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="9" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLineEdit" name="m_lEditFreq">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>100.00</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_pBSetFreq">
+          <property name="text">
+           <string>Set Freq</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="7" column="0">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </item>

@@ -395,7 +395,7 @@ void SdrDevice::run()
         tb->connect(hackrf_soapy_source, 0, resampler, 0);
         tb->connect(resampler, 0, quad_demod, 0);
         tb->connect(quad_demod, 0, low_pass_filter, 0);
-        tb->connect(low_pass_filter, 0, customBuffer, 0);
+        tb->connect(low_pass_filter, 0, audio_sink, 0);
         tb->start();
     } catch (const std::exception &e) {
         qDebug() << "Block Error: " << e.what();
