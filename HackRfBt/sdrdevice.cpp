@@ -1,6 +1,6 @@
-#include "osmodevice.h"
+#include "sdrdevice.h"
 
-OsmoDevice::OsmoDevice(QObject *parent):
+SdrDevice::SdrDevice(QObject *parent):
     QThread(parent)
 {
     m_ptt                  = false;
@@ -18,90 +18,101 @@ OsmoDevice::OsmoDevice(QObject *parent):
     interpolation          = static_cast<int>(DEFAULT_SAMPLE_RATE / 1e6);
     resampler_decimation   = static_cast<int>(DEFAULT_SAMPLE_RATE * decimation / 1e6);
 
-    hackrf_osmo_source = osmosdr::source::make("hackrf=0");
+    try {
+//        hackrf_osmo_source = osmosdr::source::make("hackrf=0");
+//        hackrf_osmo_source->set_time_unknown_pps(osmosdr::time_spec_t());
+//        hackrf_osmo_source->set_sample_rate(sample_rate);
+//        hackrf_osmo_source->set_center_freq(currentFrequency, 0);
+//        hackrf_osmo_source->set_freq_corr(0, 0);
+//        hackrf_osmo_source->set_dc_offset_mode(0, 0);
+//        hackrf_osmo_source->set_iq_balance_mode(0, 0);
+//        hackrf_osmo_source->set_gain_mode(false, 0);
+//        hackrf_osmo_source->set_gain(0, 0);
+//        hackrf_osmo_source->set_if_gain(40, 0);
+//        hackrf_osmo_source->set_bb_gain(40, 0);
+//        hackrf_osmo_source->set_antenna("", 0);
+//        hackrf_osmo_source->set_bandwidth(0, 0);
 
-    hackrf_osmo_source->set_time_unknown_pps(osmosdr::time_spec_t());
-    hackrf_osmo_source->set_sample_rate(sample_rate);
-    hackrf_osmo_source->set_center_freq(currentFrequency, 0);
-    hackrf_osmo_source->set_freq_corr(0, 0);
-    hackrf_osmo_source->set_dc_offset_mode(0, 0);
-    hackrf_osmo_source->set_iq_balance_mode(0, 0);
-    hackrf_osmo_source->set_gain_mode(false, 0);
-    hackrf_osmo_source->set_gain(0, 0);
-    hackrf_osmo_source->set_if_gain(40, 0);
-    hackrf_osmo_source->set_bb_gain(40, 0);
-    hackrf_osmo_source->set_antenna("", 0);
-    hackrf_osmo_source->set_bandwidth(0, 0);
+//        qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
+//        qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
+//        qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
+//        qDebug() << "Actual RX Gain: " << hackrf_osmo_source->get_gain() << " dB...";
+//        qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
+//        qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
 
-    qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
-    qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
-    qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
-    qDebug() << "Actual RX Gain: " << hackrf_osmo_source->get_gain() << " dB...";
-    qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
-    qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
-    qDebug() << "interpolation: " << interpolation << "resampler_decimation: " << resampler_decimation;
+        std::string dev = "hackrf=0";
+        std::string stream_args = "";
+        std::vector<std::string> tune_args = {""};
+        std::vector<std::string> settings = {""};
 
-    customAudioSink = std::make_shared<CustomAudioSink>("audio_sink");
+        hackrf_soapy_source = gr::soapy::source::make(
+            "hackrf",
+            "fc32",
+            1,
+            dev,
+            stream_args,
+            tune_args,
+            settings
+            );
 
+        if (!hackrf_soapy_source) {
+            throw std::runtime_error("Failed to create SoapySDR source.");
+        }
+
+        hackrf_soapy_source->set_sample_rate(0, sample_rate);
+        hackrf_soapy_source->set_bandwidth(0, 0);
+        hackrf_soapy_source->set_frequency(0, currentFrequency);
+        hackrf_soapy_source->set_gain(0, "AMP", false);
+        hackrf_soapy_source->set_gain(0, "LNA", std::min(std::max(40.0, 0.0), 40.0));
+        hackrf_soapy_source->set_gain(0, "VGA", std::min(std::max(40.0, 0.0), 62.0));
+
+        // Print device information
+        qDebug() << "Center Frequency: " << hackrf_soapy_source->get_frequency(0) << " Hz";
+        qDebug() << "Sample Rate: " << hackrf_soapy_source->get_sample_rate(0) << " Hz\n";
+        qDebug() << "Actual RX Gain: " << hackrf_soapy_source->get_gain(0) << " dB...";
+        qDebug() << "LNA Gain: " << hackrf_soapy_source->get_gain(0, "LNA") << " dB";
+        qDebug() << "VGA Gain: " << hackrf_soapy_source->get_gain(0, "VGA") << " dB";
+
+    } catch (const std::exception &e) {
+        qDebug() << "Source Error: " << e.what();
+    }
+
+    customBuffer = std::make_shared<CustomBuffer>("custom_buffer");
     gattServer = GattServer::getInstance();
     if (gattServer)
     {
         qDebug() << "Starting gatt service";
-        QObject::connect(gattServer, &GattServer::connectionState, this, &OsmoDevice::onConnectionStatedChanged);
-        QObject::connect(gattServer, &GattServer::dataReceived, this, &OsmoDevice::onDataReceived);
-        QObject::connect(gattServer, &GattServer::sendInfo, this, &OsmoDevice::onInfoReceived);
+        QObject::connect(gattServer, &GattServer::connectionState, this, &SdrDevice::onConnectionStatedChanged);
+        QObject::connect(gattServer, &GattServer::dataReceived, this, &SdrDevice::onDataReceived);
+        QObject::connect(gattServer, &GattServer::sendInfo, this, &SdrDevice::onInfoReceived);
         gattServer->startBleService();
     }
 }
 
-OsmoDevice::~OsmoDevice()
+SdrDevice::~SdrDevice()
 {       
 }
 
-void OsmoDevice::setFrequency(double frequency)
+void SdrDevice::setFrequency(double frequency)
 {
-    if (hackrf_osmo_source) {
-        hackrf_osmo_source->set_center_freq(frequency);
-        currentFrequency = getCenterFrequency();
-    }
+//    if (hackrf_osmo_source) {
+//        hackrf_osmo_source->set_center_freq(frequency);
+//        currentFrequency = getCenterFrequency();
+//    }
+    hackrf_soapy_source->set_frequency(0, frequency);
+    currentFrequency = getCenterFrequency();
 }
 
-double OsmoDevice::getCenterFrequency() const
+double SdrDevice::getCenterFrequency() const
 {
-    if (hackrf_osmo_source)
-    {
-        return hackrf_osmo_source->get_center_freq();
-    }
-    return currentFrequency;
+//    if (hackrf_osmo_source)
+//    {
+//        return hackrf_osmo_source->get_center_freq();
+//    }
+    return hackrf_soapy_source->get_frequency(0);
 }
 
-void OsmoDevice::setSampleRate(double sampleRate)
-{
-    sample_rate = sampleRate;
-    if (hackrf_osmo_source) {
-        hackrf_osmo_source->set_sample_rate(sampleRate);
-        sample_rate = getSampleRate();
-    }
-}
-
-double OsmoDevice::getSampleRate()
-{
-    if (hackrf_osmo_source) {
-        return hackrf_osmo_source->get_sample_rate();
-    }
-    return sample_rate;
-}
-
-void OsmoDevice::setGain(double gain)
-{
-    if (hackrf_osmo_source)
-    {
-        hackrf_osmo_source->set_if_gain(gain, 0);
-        hackrf_osmo_source->set_bb_gain(gain, 0);
-    }
-}
-
-void OsmoDevice::onConnectionStatedChanged(bool state)
+void SdrDevice::onConnectionStatedChanged(bool state)
 {
     if(state)
     {
@@ -113,7 +124,7 @@ void OsmoDevice::onConnectionStatedChanged(bool state)
     }
 }
 
-void OsmoDevice::onDataReceived(QByteArray data)
+void SdrDevice::onDataReceived(QByteArray data)
 {
     uint8_t parsedCommand;
     uint8_t rw;
@@ -262,7 +273,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
                 sendString(mData, data);
             }
             else if (command == "set_ip") {
-                customAudioSink->connectToServer(valueString, 5001);
+                customBuffer->connectToServer(valueString, 5001);
             }
             break;
         }
@@ -307,7 +318,7 @@ void OsmoDevice::onDataReceived(QByteArray data)
     }
 }
 
-void OsmoDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
+void SdrDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QByteArray *result)
 {
     uint8_t buffer[MaxPayload+8] = {'\0'};
     uint8_t command = msgId;
@@ -320,7 +331,7 @@ void OsmoDevice::createMessage(uint8_t msgId, uint8_t rw, QByteArray payload, QB
     }
 }
 
-bool OsmoDevice::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
+bool SdrDevice::parseMessage(QByteArray *data, uint8_t &command, QByteArray &value, uint8_t &rw)
 {
     MessagePack parsedMessage;
 
@@ -341,7 +352,7 @@ bool OsmoDevice::parseMessage(QByteArray *data, uint8_t &command, QByteArray &va
     return false;
 }
 
-void OsmoDevice::sendCommand(uint8_t command, uint8_t value)
+void SdrDevice::sendCommand(uint8_t command, uint8_t value)
 {
     // Convert the uint32_t value to a QByteArray
     QByteArray payload;
@@ -353,7 +364,7 @@ void OsmoDevice::sendCommand(uint8_t command, uint8_t value)
     gattServer->writeValue(sendData);
 }
 
-void OsmoDevice::sendString(uint8_t command, const QString& value)
+void SdrDevice::sendString(uint8_t command, const QString& value)
 {
     QByteArray sendData;
     QByteArray bytedata;
@@ -362,27 +373,31 @@ void OsmoDevice::sendString(uint8_t command, const QString& value)
     gattServer->writeValue(sendData);
 }
 
-void OsmoDevice::onInfoReceived(QString info)
+void SdrDevice::onInfoReceived(QString info)
 {
     qDebug() << info;
 }
 
-void OsmoDevice::run()
+void SdrDevice::run()
 {
     tb = gr::make_top_block("HackRf");
 
     gr::filter::rational_resampler_ccf::sptr resampler = gr::filter::rational_resampler_ccf::make(interpolation, resampler_decimation);
     auto low_pass_filter = gr::filter::fir_filter_fff::make(
         6,
-        gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));
-
+        gr::filter::firdes::low_pass(1, sample_rate, cut_off, transition, gr::fft::window::WIN_HAMMING, 6.76));    
     gr::analog::quadrature_demod_cf::sptr quad_demod = gr::analog::quadrature_demod_cf::make(1.0);
-    //auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
-    //auto multiply_const = gr::blocks::multiply_const_ff::make(audio_gain);
 
-    tb->connect(hackrf_osmo_source, 0, resampler, 0);
-    tb->connect(resampler, 0, quad_demod, 0);
-    tb->connect(quad_demod, 0, low_pass_filter, 0);
-    tb->connect(low_pass_filter, 0, customAudioSink, 0);
-    tb->start();
+//  gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
+//  auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
+    try{       
+        //  tb->connect(hackrf_osmo_source, 0, resampler, 0);
+        tb->connect(hackrf_soapy_source, 0, resampler, 0);
+        tb->connect(resampler, 0, quad_demod, 0);
+        tb->connect(quad_demod, 0, low_pass_filter, 0);
+        tb->connect(low_pass_filter, 0, customBuffer, 0);
+        tb->start();
+    } catch (const std::exception &e) {
+        qDebug() << "Block Error: " << e.what();
+    }
 }

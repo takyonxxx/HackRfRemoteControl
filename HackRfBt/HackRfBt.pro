@@ -11,17 +11,17 @@ QMAKE_CXXFLAGS += -v
 QMAKE_ASSET_CATALOGS_BUILD_PATH = $$PWD
 
 SOURCES += \
-        customaudiosink.cpp \
+        custombuffer.cpp \
         gattserver.cpp \
         main.cpp \
         message.cpp \
-        osmodevice.cpp
+        sdrdevice.cpp
 
 HEADERS += \
-    customaudiosink.h \
+    custombuffer.h \
     gattserver.h \
     message.h \
-    osmodevice.h \
+    sdrdevice.h \
     tcpclient.h \
     udpclient.h
 
@@ -47,6 +47,7 @@ macos {
         -lgnuradio-runtime \
         -lgnuradio-audio \
         -lgnuradio-soapy \
+        -lgnuradio-pmt \
         -lgnuradio-uhd
 
     LIBS += -L/opt/homebrew/Cellar/boost/1.84.0_1/lib -lboost_system -lboost_filesystem-mt -lboost_program_options
@@ -71,6 +72,7 @@ unix:!macx{
 #    sudo apt-get install libgl1-mesa-dev
 #    sudo apt-get install gr-osmosdr
 #    sudo apt-get install gnuradio
+#    sudo apt-get install libsoapysdr-dev libsoapysdr0.8
 #    nmap -sP 192.168.1.0/24
 
     INCLUDEPATH += /usr/include
@@ -80,10 +82,20 @@ unix:!macx{
     INCLUDEPATH += /usr/local/lib
     INCLUDEPATH += /usr/lib/x86_64-linux-gnu
     # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf
+    LIBS += -L/usr/lib/aarch64-linux-gnu/SoapySDR/modules0.8
 
     LIBS += -lboost_system -lboost_program_options -lboost_thread
-    LIBS += -lrt -lpthread -losmosdr -lfmt -llog4cpp
-    LIBS += -lgnuradio-analog -lgnuradio-blocks -lgnuradio-digital -lgnuradio-filter -lgnuradio-fft -lgnuradio-runtime -lgnuradio-audio -lgnuradio-uhd -lgnuradio-osmosdr -lgnuradio-pmt
+    LIBS += -lrt -lpthread -losmosdr -lfmt -llog4cpp -lSoapySDR
+    LIBS += -lgnuradio-analog \
+    -lgnuradio-blocks \
+    -lgnuradio-digital \
+    -lgnuradio-filter \
+    -lgnuradio-fft \
+    -lgnuradio-runtime \
+    -lgnuradio-audio \
+    -lgnuradio-soapy \
+    -lgnuradio-pmt \
+    -lgnuradio-uhd
 
     # INCLUDEPATH += /usr/lib/x86_64-linux-gnu
     # INCLUDEPATH += /usr/lib/arm-linux-gnueabihf

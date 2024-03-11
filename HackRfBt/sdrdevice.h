@@ -1,5 +1,5 @@
-#ifndef OSMODEVICE_H
-#define OSMODEVICE_H
+#ifndef SDRDEVICE_H
+#define SDRDEVICE_H
 
 #include <QCoreApplication>
 #include <QBuffer>
@@ -18,13 +18,19 @@
 #include <gnuradio/analog/quadrature_demod_cf.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/gr_complex.h>
+#include <gnuradio/blocks/null_sink.h>
+#include <gnuradio/soapy/source.h>
 
-#include <osmosdr/source.h>
 #include <message.h>
 #include "gattserver.h"
-#include "customaudiosink.h"
+#include "custombuffer.h"
 
+#include <SoapySDR/Device.hpp>
+#include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Errors.hpp>
+#include <SoapySDR/Time.hpp>
 
+//#include <osmosdr/source.h>
 
 #define _GHZ(x) ((uint64_t)(x) * 1000000000)
 #define _MHZ(x) ((x) * 1000000)
@@ -48,30 +54,28 @@ typedef enum {
     GHZ
 } FreqMod;
 
-class OsmoDevice : public QThread
+class SdrDevice : public QThread
 {
     Q_OBJECT
 public:
-    explicit OsmoDevice(QObject *parent = nullptr);
-    ~OsmoDevice();
+    explicit SdrDevice(QObject *parent = nullptr);
+    ~SdrDevice();
 
     void setFrequency(double frequency);
-    double getCenterFrequency() const;
-    void setSampleRate(double sampleRate);
-    double getSampleRate();
-    void setGain(double gain);
+    double getCenterFrequency() const;   
 
 private:
+    gr::soapy::source::sptr hackrf_soapy_source;
+//  osmosdr::source::sptr hackrf_osmo_source;
+//#endif
 
-    osmosdr::source::sptr hackrf_osmo_source;
     GattServer *gattServer{};   
     Message message;
     gr::top_block_sptr tb;
-    std::shared_ptr<CustomAudioSink> customAudioSink;
+    std::shared_ptr<CustomBuffer> customBuffer;
 
     int sample_rate ;
     int audio_samp_rate;
-    int center_freq;
     int cut_off;
     int transition;
     int decimation;
@@ -126,33 +130,4 @@ protected:
     void run() override;
 };
 
-//     SoapySDR::Kwargs args;
-//     args["driver"] = "hackrf";
-//     args["device"] = "0";
-
-//     std::string dev = "hackrf=0";
-//     std::string stream_args = "";
-//     std::vector<std::string> tune_args = {""};
-//     std::vector<std::string> settings = {""};
-
-//     hackrf_soapy_source = SoapySDR::Device::make(args);
-
-//     hackrf_soapy_source->setSampleRate(SOAPY_SDR_RX, 0, sample_rate);
-//     hackrf_soapy_source->setBandwidth(SOAPY_SDR_RX, 0, 0);
-//     hackrf_soapy_source->setFrequency(SOAPY_SDR_RX, 0, center_freq);
-//     hackrf_soapy_source->setGain(0, SOAPY_SDR_RX, "AMP", false);
-//     hackrf_soapy_source->setGain(SOAPY_SDR_RX, 0, "LNA", std::min(std::max(40.0, 0.0), 40.0));
-//     hackrf_soapy_source->setGain(SOAPY_SDR_RX, 0, "VGA", std::min(std::max(40.0, 0.0), 62.0));
-
-//     std::string ver = gr::version();
-//     qDebug() << "GNU Radio Version: " + ver;
-//     qDebug() << "Center Frequency: " << hackrf_soapy_source->getFrequency(SOAPY_SDR_RX, 0) << " Hz";
-//     qDebug() << "Sample Rate: " << hackrf_soapy_source->getSampleRate(SOAPY_SDR_RX, 0) << " Hz\n";
-//     qDebug() << "Actual RX Gain: " << hackrf_soapy_source->getGain(SOAPY_SDR_RX, 0) << " dB...";
-//     qDebug() << "LNA Gain: " << hackrf_soapy_source->getGain(SOAPY_SDR_RX, 0, "LNA") << " dB";
-//     qDebug() << "VGA Gain: " << hackrf_soapy_source->getGain(SOAPY_SDR_RX, 0, "VGA") << " dB";
-
-//     gr::soapy::sink::sptr hackrf_soapy_sink = gr::soapy::sink::make(dev, "fc32", 1, "hackrf=0", "", tune_args, settings);
-// }
-
-#endif // OSMODEVICE_H
+#endif // SDRDEVICE_H
