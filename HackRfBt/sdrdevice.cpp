@@ -35,7 +35,7 @@ SdrDevice::SdrDevice(QObject *parent):
 
 //        qDebug() << "Channel Count: " + QString::number(hackrf_osmo_source->get_num_channels());
 //        qDebug() << "Center Frequency: " << hackrf_osmo_source->get_center_freq(0) << " Hz";
-//        qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz\n";
+//        qDebug() << "Sample Rate: " << hackrf_osmo_source->get_sample_rate() << " Hz";
 //        qDebug() << "Actual RX Gain: " << hackrf_osmo_source->get_gain() << " dB...";
 //        qDebug() << "IF Gain: " << hackrf_osmo_source->get_gain("IF", 0) << " dB";
 //        qDebug() << "BB Gain: " << hackrf_osmo_source->get_gain("BB", 0) << " dB";
@@ -68,7 +68,7 @@ SdrDevice::SdrDevice(QObject *parent):
 
         // Print device information
         qDebug() << "Center Frequency: " << hackrf_soapy_source->get_frequency(0) << " Hz";
-        qDebug() << "Sample Rate: " << hackrf_soapy_source->get_sample_rate(0) << " Hz\n";
+        qDebug() << "Sample Rate: " << hackrf_soapy_source->get_sample_rate(0) << " Hz";
         qDebug() << "Actual RX Gain: " << hackrf_soapy_source->get_gain(0) << " dB...";
         qDebug() << "LNA Gain: " << hackrf_soapy_source->get_gain(0, "LNA") << " dB";
         qDebug() << "VGA Gain: " << hackrf_soapy_source->get_gain(0, "VGA") << " dB";
@@ -389,7 +389,7 @@ void SdrDevice::run()
     gr::analog::quadrature_demod_cf::sptr quad_demod = gr::analog::quadrature_demod_cf::make(1.0);
 
 //  gr::blocks::null_sink::sptr null_sink = gr::blocks::null_sink::make(sizeof(gr_complex));
-//  auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
+    auto audio_sink = gr::audio::sink::make(audio_samp_rate, "", true);
     try{       
         //  tb->connect(hackrf_osmo_source, 0, resampler, 0);
         tb->connect(hackrf_soapy_source, 0, resampler, 0);

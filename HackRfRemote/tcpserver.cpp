@@ -4,7 +4,7 @@
 TcpServer::TcpServer(QObject *parent):
      QTcpServer(parent)
 {
-    readBufferSize = 50;
+    readBufferSize = 4; // 4096
     audioOutput = new AudioOutput(this, DEFAULT_SAMPLE_RATE);
 }
 
